@@ -80,7 +80,7 @@ You will need:
 - Perl 5.10 or newer
 - `lighttpd` (recommended) or Apache httpd with CGI enabled
 - Cron (for scheduled data generation)
-- 
+  
 # Install:
 ```bash
   apt install \
