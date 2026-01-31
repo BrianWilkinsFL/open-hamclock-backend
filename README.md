@@ -1,5 +1,7 @@
 # open-hamclock-backend
-Open Source HamClock Backend Replacement. This is a community project and no relation to the creator of HamClock Elwood Downey, WB0OEW, ecdowney@clearskyinstitute.com SK
+Open Source and Faithful HamClock Backend Replacement. This is a community project and no relation to the creator of HamClock Elwood Downey, WB0OEW, ecdowney@clearskyinstitute.com SK
+
+I wish the Downey family my deepest condolences.
 
 # License
 MIT - this is free. Not for commercial use
