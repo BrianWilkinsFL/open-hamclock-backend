@@ -22,7 +22,7 @@ HamClock requests about 40+ artifacts. I have locally replicated all of them tha
 - [ ] SDO/f_211_193_171_170.bmp.z
 - [ ] SDO/latest_170_HMIB.bmp.z
 - [ ] fetchVOACAPArea.pl
-- [ ] fetchPSKReporter.pl?ofgrid=XXYY&maxage=1800 
+- [x] fetchPSKReporter.pl?ofgrid=XXYY&maxage=1800 
 - [ ] worldwx/wx.txt
 - [x] esats/esats.txt
 - [ ] solarflux/solarflux-history.txt
