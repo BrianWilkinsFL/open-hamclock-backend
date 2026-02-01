@@ -12,3 +12,5 @@
 */15 * * * * /opt/hamclock-backend/scripts/publish_aurora.pl
 
 */5 * * * * /opt/hamclock-backend/scripts/bzgen.sh
+
+*/5 * * * * /opt/hamclock-backend/scripts/gen_onta.pl
