@@ -56,3 +56,4 @@
 
 7 * * * * /opt/hamclock-backend/scripts/update_drap_maps.sh >> /opt/hamclock-backend/logs/update_drap_maps.log 2>&1
 
+13 * * * * /opt/hamclock-backend/scripts/update_clouds_maps.sh >> /opt/hamclock-backend/logs/update_clouds_maps.log 2>&1
