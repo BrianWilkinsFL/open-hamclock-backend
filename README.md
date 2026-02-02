@@ -44,8 +44,8 @@ HamClock requests about 40+ artifacts. I have locally replicated all of them tha
 - [ ] maps/map-D-660x330-Clouds.bmp.z
 - [ ] maps/map-N-660x330-Clouds.bmp.z
 - [ ] maps/map-N-660x330-Terrain.bmp.z
-- [ ] maps/map-D-660x330-DRAP-S.bmp.z
-- [ ] maps/map-N-660x330-DRAP-S.bmp.z
+- [x] maps/map-D-660x330-DRAP-S.bmp.z
+- [x] maps/map-N-660x330-DRAP-S.bmp.z
 - [ ] maps/map-N-660x330-MUF-RT.bmp.z
 - [ ] maps/map-D-660x330-MUF-RT.bmp.z
 - [ ] maps/map-D-660x330-Aurora.bmp.z
