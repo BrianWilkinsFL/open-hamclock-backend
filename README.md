@@ -34,7 +34,7 @@ HamClock requests about 40+ artifacts. I have locally replicated all of them tha
 - [x] solar-wind/swind-24hr.txt generator
 - [x] cron job to put swind-24hr.txt in the solar-wind location
 - [x] cities2.txt (static city file - no urgency to update this for maybe 5 years or more)
-- [ ] ssn/ssn-31.txt
+- [x] ssn/ssn-31.txt
 - [x] ONTA/onta.txt
 - [ ] contests/contests311.txt (this may stay broken until an agreement is made based on the site's ToS https://www.contestcalendar.com/terms.php)
 - [x] dxpeds/dxpeditions.txt
