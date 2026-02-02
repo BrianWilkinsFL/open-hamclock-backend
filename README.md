@@ -102,13 +102,7 @@ You will need:
   
 # Install:
 ```bash
-  apt install \
-  lighttpd \
-  libwww-perl \
-  libjson-perl \
-  libxml-rss-perl \
-  libxml-feed-perl \
-  libhtml-parser-perl
+  apt install lighttpd libwww-perl libjson-perl libxml-rss-perl libxml-feed-perl libhtml-parser-perl
   
   sudo tar xzf hamclock-backend.tar.gz -C /opt
   sudo chown -R www-data:www-data /opt/hamclock-backend
@@ -132,12 +126,20 @@ You will need:
 ```
 
 # Automated Pulls
+- Once per month: /opt/hamclock-backend/scripts/gen_solarflux-history.sh
+- Once per day at 12:10am: /opt/hamclock-backend/scripts/gen_swind_24hr.pl
+- Once per day at 12:15am: /opt/hamclock-backend/scripts/update_solarflux_cache.pl
+- Once per day at 12:20am: /opt/hamclock-backend/scripts/publish_solarflux_99.pl
+- Once per dat at 12:25am: /opt/hamclock-backend/scripts/gen_dxnews.pl
+- Once per day at 12:30am: /opt/hamclock-backend/scripts/gen_ng3k.pl
+- Once per day at 12:35am: /opt/hamclock-backend/scripts/merge_dxpeditions.pl
+- Every 12 hours: /opt/hamclock-backend/scripts/gen_kindex.pl
+- Every 3 hours: /opt/hamclock-backend/scripts/build_esats.pl
+- Every hour: /opt/hamclock-backend/scripts/update_clouds_maps.sh
+- Every hour: /opt/hamclock-backend/scripts/update_drap_maps.sh
+- Every hour: /opt/hamclock-backend/scripts/gen_dst.sh
 - Every 30 minutes: /opt/hamclock-backend/scripts/gen_aurora.sh
 - Every 5 minutes: /opt/hamclock-backend/scripts/gen_onta.pl
-- Once per day at 12:15am /opt/hamclock-backend/scripts/update_solarflux_cache.pl
-- Once per day at 12:20am /opt/hamclock-backend/scripts/publish_solarflux_99.pl
-- Once per day at 12:10am /opt/hamclock-backend/scripts/gen_swind_24hr.pl
+- Every 5 minutes: /opt/hamclock-backend/scripts/gen_drap.sh
 - Every 5 minutes: /opt/hamclock-backend/scripts/bzgen.sh
 - Once per minute: /opt/hamclock-backend/scripts/genxray.pl
-  
-```
