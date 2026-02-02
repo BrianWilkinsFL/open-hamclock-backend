@@ -39,11 +39,12 @@ HamClock requests about 40+ artifacts. I have locally replicated all of them tha
 - [ ] contests/contests311.txt (this may stay broken until an agreement is made based on the site's ToS https://www.contestcalendar.com/terms.php)
 - [x] dxpeds/dxpeditions.txt
 - [ ] NOAASpaceWX/noaaswx.txt
-- [ ] maps/map-D-2640x1320-Countries.bmp.z
-- [ ] maps/map-N-2640x1320-Countries.bmp.z
+- [x] maps/map-D-2640x1320-Countries.bmp.z - this is just a static map of the world, won't change often
+- [x] maps/map-N-2640x1320-Countries.bmp.z - this is just a static map of the world, won't change often
 - [ ] maps/map-D-660x330-Clouds.bmp.z
 - [ ] maps/map-N-660x330-Clouds.bmp.z
-- [ ] maps/map-N-660x330-Terrain.bmp.z
+- [x] maps/map-D-660x330-Terrain.bmp.z - this is just a static map of the world, won't change often
+- [x] maps/map-N-660x330-Terrain.bmp.z - this just a static map of the world, won't change often
 - [x] maps/map-D-660x330-DRAP-S.bmp.z
 - [x] maps/map-N-660x330-DRAP-S.bmp.z
 - [ ] maps/map-N-660x330-MUF-RT.bmp.z
@@ -69,6 +70,8 @@ HamClock requests about 40+ artifacts. I have locally replicated all of them tha
 - SDO/f_304_170.bmp.z : This is a zlib compressed bitmap. It comes from here most likely: https://umbra.nascom.nasa.gov/images/latest.html and https://umbra.nascom.nasa.gov/images/latest_aia_304.gif
 
 Decompressing the images for viewing can be done using $ zlib-flate -uncompress < filename.bmp.z > newfilename.bmp
+
+Images with N means Night and D means Day
 
 # Vision
 The goal is to make this as a drop-in replacement for the HamClock backend by replicating the same client/server responses with Perl CGI scripting and static files. We don't have access to the backend server source code so this is completely created by looking at the interfaces. To allow existing HamClock's running on Arduino to continue to work, we will setup a local DNS sinkhole to redirect to your local backend running at your home or office.
