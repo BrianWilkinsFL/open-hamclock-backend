@@ -67,6 +67,9 @@ HamClock requests about 40+ artifacts. I have locally replicated all of them tha
 
 # Images
 - SDO/f_304_170.bmp.z : This is a zlib compressed bitmap. It comes from here most likely: https://umbra.nascom.nasa.gov/images/latest.html and https://umbra.nascom.nasa.gov/images/latest_aia_304.gif
+
+Decompressing the images for viewing can be done using $ zlib-flate -uncompress < filename.bmp.z > newfilename.bmp
+
 # Vision
 The goal is to make this as a drop-in replacement for the HamClock backend by replicating the same client/server responses with Perl CGI scripting and static files. We don't have access to the backend server source code so this is completely created by looking at the interfaces. To allow existing HamClock's running on Arduino to continue to work, we will setup a local DNS sinkhole to redirect to your local backend running at your home or office.
 
