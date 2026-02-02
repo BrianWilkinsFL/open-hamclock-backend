@@ -109,7 +109,7 @@ You will need:
           "mod_access",
           "mod_alias",
           "mod_redirect",
-          "mod_cgi"
+          "mod_cgi",
       )
 
   sudo lighttpd -tt -f /etc/lighttpd/lighttpd.conf
