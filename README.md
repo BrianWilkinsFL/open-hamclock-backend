@@ -133,6 +133,11 @@ You will need:
   sudo systemctl restart lighttpd
   # add crontab as user www-data and described in scripts/crontab
 ```
+# Testing
+
+After install, you can verify any script is working by using sudo -u www-data /opt/hamclock/scripts/<scriptname> <optional-param>
+
+Most cron-jobs will log to /opt/hamclock-backend/logs
 
 # Automated Pulls
 - Once per month: /opt/hamclock-backend/scripts/gen_solarflux-history.sh
