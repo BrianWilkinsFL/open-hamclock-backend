@@ -3,7 +3,7 @@ use strict;
 use warnings;
 
 # ---------------- CONFIG ----------------
-my $voacap_out = "/home/hamclock/itshfbc/run/voacapx.out";
+my $voacap_out = "/var/www/itshfbc/run/voacapx.out";
 my $UTC        = 0;
 my $META       = "100W,CW,TOA>3,SP,S=97";
 
