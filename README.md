@@ -128,6 +128,7 @@ Note: Anything under maps/ is considered a "Core Map" in HamClock
 - [x] Solar flux
 - [x] Amateur Satellites - see Known Issues
 - [ ] PSK Reporter WSPR
+- [ ] VOACAP
 - [ ] RBN
 - [x] PSK Reporter All
 
