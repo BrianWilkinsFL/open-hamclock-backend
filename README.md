@@ -53,7 +53,7 @@ HamClock is hard-coded to use the clearskyinstitute.com URL. You can override to
 
 ### Different Central Server
 
-./hamclock -b <central-server-ip>:80
+./hamclock -b \<central-server-ip-or-host\>:80
 
 ## Project Completion Status
 
