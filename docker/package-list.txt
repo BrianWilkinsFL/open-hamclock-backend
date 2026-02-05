@@ -4,30 +4,30 @@
 vim
 
 # packages required by hamclock-backend
-curl
-jq
+build-essential
 cron
+curl
+ffmpeg
+gfortran
+imagemagick
+jq
+libeccodes-dev
+libg2c-dev
+libhtml-parser-perl
+libjson-perl
+libpng-dev
+librsvg2-bin
+libtext-csv-xs-perl
+libwww-perl
+libxml-feed-perl
+libxml-rss-perl
 lighttpd
 media-types
-imagemagick
 python3
-ffmpeg
-build-essential
-gfortran
-python3-numpy
-python3-pyproj
 python3-dev
 python3-grib
 python3-matplotlib
-libeccodes-dev
-libtext-csv-xs-perl
-librsvg2-bin
-libg2c-dev
-libpng-dev
-libwww-perl
-libjson-perl
-libxml-rss-perl
-libxml-feed-perl
-libhtml-parser-perl
+python3-numpy
+python3-pyproj
 
 # dependencies pulled in by hamclock-backend package list

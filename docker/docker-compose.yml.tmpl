@@ -1,0 +1,29 @@
+services:
+  web:
+    container_name: hamclock-be
+    image: __IMAGE__
+    restart: unless-stopped
+    networks:
+      - hamclock
+    ports:
+      - :80:80
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80"]
+      timeout: "5s"
+      start_period: "20s"
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "2"
+
+networks:
+  hamclock:
+    driver: bridge
+    name: hamclock
+    enable_ipv6: true
+    ipam:
+     driver: default
+     config:
+       - subnet: 172.19.0.0/16
+    driver_opts:
+      com.docker.network.bridge.name: hamclock

@@ -1,27 +1,61 @@
-## PLEASE DON'T CHANGE ANYTHING IN THIS FILE UNLESS YOU'RE developing.
-## REFER TO THE DOCUMENTATION FOR CONFIGURATION OF YOUR HAMCLOCK!
 FROM debian:13.3-slim
-ARG BUILD_DIR
 
 USER root
 WORKDIR /opt
-COPY $BUILD_DIR/package-list.txt /opt
+
 # Install prerequisites
+COPY docker/package-list.txt /opt
 RUN apt update && \
     apt install -y $(grep -v '^#' package-list.txt) && \
     apt-get clean && \
     rm -rf package-list.txt /var/lib/apt/lists/* 
 
-COPY hamclock-backend.tar.gz /opt
-COPY 50-hamclock.conf /opt
-COPY scripts/crontab /var/spool/cron/crontabs/www-data
+# Install voacap
+COPY docker/voacap-v.0.7.6.tgz /opt
 RUN cd /opt && \
-    tar xzf hamclock-backend.tar.gz -C /opt && \
-    rm -f hamclock-backend.tar.gz && \
+    # \
+    # tarball \
+    tar xzf voacap-v.0.7.6.tgz && \
+    cd voacapl-v.0.7.6 && \
+    # \
+    # build it \
+    ./configure && \
+    make install && \
+    # \
+    # configure it \
+    mkdir /var/www/itshfbc && \
+    chown www-data:www-data /var/www/itshfbc && \
+    runuser -u www-data makeitshfbc && \
+    # \
+    # clean up \
+    cd .. && \
+    rm -Rf voacapl-v.0.7.6 voacap-v.0.7.6.tgz
+
+# Install hamclock-backend
+COPY . /opt/hamclock-backend/
+RUN cd /opt/hamclock-backend && \
+    # \
+    # make directory structure \
+    mkdir -p \
+        tmp \
+        logs \
+        cache \
+        data \
+        htdocs && \
+    mv ham htdocs/ && \
+    mv  docker/run.sh /opt && \
+    sed 's/^\([^ #]\+[ ]\+\)\{5\}\([^>]\+\)\([> ]\+\)\?\([^ ]*\).*$/\2\3\4/' scripts/crontab > prime_crontabs.sh && \
+    # \
+    # set permissions \
+    chown -R www-data:www-data . && \
+    chmod +x scripts/* prime_crontabs.sh /opt/run.sh && \
+    # \
+    # set up cron \
+    mv scripts/crontab /var/spool/cron/crontabs/www-data && \
     chown www-data:crontab /var/spool/cron/crontabs/www-data && \
     chmod 600 /var/spool/cron/crontabs/www-data && \
-    chown -R www-data:www-data /opt/hamclock-backend && \
-    chmod +x /opt/hamclock-backend/htdocs/ham/HamClock/*.pl && \
+    # \
+    # set up lighttpd \
     mv 50-hamclock.conf /etc/lighttpd/conf-available/50-hamclock.conf && \
     /usr/sbin/lighty-enable-mod accesslog && \
     /usr/sbin/lighttpd-enable-mod hamclock && \
@@ -32,31 +66,5 @@ server.modules += (
 )
 EOF
 
-COPY $BUILD_DIR/voacap-v.0.7.6.tgz /opt
-RUN cd /opt && \
-    tar xzf voacap-v.0.7.6.tgz && \
-    rm -f voacap-v.0.7.6.tgz && \
-    cd voacapl-v.0.7.6 && \
-    ./configure && \
-    make install && \
-    mkdir /var/www/itshfbc && \
-    chown www-data:www-data /var/www/itshfbc && \
-    runuser -u www-data makeitshfbc
-
-## temp to get latest before tgz was made
-COPY scripts/* /opt/hamclock-backend/scripts/
-RUN cd /opt && \
-    # need to create these folders until they get into hamclock-backend.tar.gz
-    mkdir -p /opt/hamclock-backend/htdocs/ham/HamClock/drap /opt/hamclock-backend/htdocs/ham/HamClock/NOAASpaceWX && \
-    sed 's/^\([^ #]\+[ ]\+\)\{5\}\(.*\)/\2/' /opt/hamclock-backend/scripts/crontab > hamclock-backend/run_crontabs_once.sh && \
-    chown -R www-data:www-data /opt/hamclock-backend && \
-    cd hamclock-backend && \
-    chmod +x /opt/hamclock-backend/scripts/* run_crontabs_once.sh
-    #runuser -u www-data ./run_crontabs_once.sh
-## temp
-
-COPY $BUILD_DIR/run.sh /opt
-RUN chmod +x /opt/run.sh
-
+# let's rock!
 CMD ["/opt/run.sh"]
-
