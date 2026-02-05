@@ -1,11 +1,10 @@
 ## PLEASE DON'T CHANGE ANYTHING IN THIS FILE UNLESS YOU'RE developing.
 ## REFER TO THE DOCUMENTATION FOR CONFIGURATION OF YOUR HAMCLOCK!
 FROM debian:13.3-slim
-ARG BUILD_DIR
 
 USER root
 WORKDIR /opt
-COPY $BUILD_DIR/package-list.txt /opt
+COPY package-list.txt /opt
 # Install prerequisites
 RUN apt update && \
     apt install -y $(grep -v '^#' package-list.txt) && \
@@ -32,7 +31,7 @@ server.modules += (
 )
 EOF
 
-COPY $BUILD_DIR/voacap-v.0.7.6.tgz /opt
+COPY voacap-v.0.7.6.tgz /opt
 RUN cd /opt && \
     tar xzf voacap-v.0.7.6.tgz && \
     rm -f voacap-v.0.7.6.tgz && \
@@ -46,16 +45,13 @@ RUN cd /opt && \
 ## temp to get latest before tgz was made
 COPY scripts/* /opt/hamclock-backend/scripts/
 RUN cd /opt && \
-    # need to create these folders until they get into hamclock-backend.tar.gz
-    mkdir -p /opt/hamclock-backend/htdocs/ham/HamClock/drap /opt/hamclock-backend/htdocs/ham/HamClock/NOAASpaceWX && \
-    sed 's/^\([^ #]\+[ ]\+\)\{5\}\(.*\)/\2/' /opt/hamclock-backend/scripts/crontab > hamclock-backend/run_crontabs_once.sh && \
-    chown -R www-data:www-data /opt/hamclock-backend && \
-    cd hamclock-backend && \
+    sed 's/.*\* \(\/[^ ]*\)\( >> [^ ]*\)\?.*/\1\2/p' /opt/hamclock-backend/scripts/crontab > run_crontabs_once.sh && \
+    chown -R www-data:www-data /opt/hamclock-backend/scripts run_crontabs_once.sh && \
     chmod +x /opt/hamclock-backend/scripts/* run_crontabs_once.sh
     #runuser -u www-data ./run_crontabs_once.sh
 ## temp
 
-COPY $BUILD_DIR/run.sh /opt
+COPY run.sh /opt
 RUN chmod +x /opt/run.sh
 
 CMD ["/opt/run.sh"]
