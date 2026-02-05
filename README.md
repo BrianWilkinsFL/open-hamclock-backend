@@ -70,21 +70,13 @@ HamClock requests about 40+ artifacts. I have locally replicated all of them tha
 ### Dynamic Map Files
 Note: Anything under maps/ is considered a "Core Map" in HamClock
 
-- [x] maps/map-D-2640x1320-Countries.bmp.z - this is just a static map of the world, won't change often
-- [x] maps/map-N-2640x1320-Countries.bmp.z - this is just a static map of the world, won't change often
-- [x] maps/map-D-660x330-Clouds.bmp.z
-- [x] maps/map-N-660x330-Clouds.bmp.z
-- [x] maps/map-D-660x330-Terrain.bmp.z - this is just a static map of the world, won't change often
-- [x] maps/map-N-660x330-Terrain.bmp.z - this just a static map of the world, won't change often
-- [x] maps/map-D-660x330-DRAP-S.bmp.z
-- [x] maps/map-N-660x330-DRAP-S.bmp.z
-- [ ] maps/map-N-660x330-MUF-RT.bmp.z
-- [ ] maps/map-D-660x330-MUF-RT.bmp.z
-- [x] maps/map-D-660x330-Aurora.bmp.z
-- [x] maps/map-N-660x330-Aurora.bmp.z
-- [x] maps/map-D-660x330-Wx-mB.bmp.z
-- [x] maps/map-N-660x330-Wx-mB.bmp.z
-- [ ] maps/*
+- [x] maps/Clouds*
+- [x] maps/Countries*
+- [x] maps/Wx-mB*
+- [ ] maps/Aurora (Partial Sizes)
+- [ ] maps/DRAP (Partial Sizes)
+- [ ] maps/MUF-RT (Partial Sizes)
+- [ ] maps/Terrain (Partial Sizes)
 - [x] SDO/*
 
 ### Dynamic Web Endpoints
