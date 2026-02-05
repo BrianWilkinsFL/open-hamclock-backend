@@ -48,5 +48,5 @@ END {
 
 # 5. Save the new timestamp and trim the log
 echo "$CURRENT_VALID_DATE" > "$LAST_DATE_FILE"
-TRIMMED_DATA=$(tail -n 420 "$OUTPUT")
+TRIMMED_DATA=$(tail -n 424 "$OUTPUT")
 echo "$TRIMMED_DATA" > "$OUTPUT"
