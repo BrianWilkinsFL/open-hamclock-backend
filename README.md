@@ -44,6 +44,17 @@ This project generates map and data artifacts in the same formats expected by th
    sudo bash install_ohb.sh
 ```
 
+## Starting HamClock
+HamClock is hard-coded to use the clearskyinstitute.com URL. You can override to use a new backend by starting HamClock with the -b option
+
+### Localhost
+
+./hamclock -b localhost:80
+
+### Different Central Server
+
+./hamclock -b <central-server-ip>:80
+
 ## Project Completion Status
 
 HamClock requests about 40+ artifacts. I have locally replicated all of them that I could find.
