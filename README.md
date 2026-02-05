@@ -29,13 +29,20 @@ This project generates map and data artifacts in the same formats expected by th
 - Root directories missing on install. Manually create cache, tmp, and logs if missing
 
 ## Compatibility
-- [ ] Ubuntu 22.x LTS
-- [ ] Ubuntu 24 AWS AMI
+- [x] Ubuntu 22.x LTS
+- [x] Ubuntu 24 AWS AMI
 - [ ] Debian 13.3 
 - [ ] Raspberry Pi
-- [ ] Windows Subsystem for Linux
+- [x] Windows Subsystem for Linux
 - [ ] Inovato Quadra
 - [ ] Mac 
+
+## Install:
+```bash
+   # Use installer in aws directory
+   # Confirmed working in aws t3-micro instance
+   sudo bash aws/install_obs.sh
+```
 
 ## Project Completion Status
 
@@ -157,13 +164,6 @@ libx11-dev libxaw7-dev libxmu-dev libxt-dev libmotif-dev wget (needed for VOACAP
 - pip install matplotlib
 - sudo wget https://downloads.sourceforge.net/project/voacap/vocap/voacapl-0.7.6.tar.gz
   Note: VOACAPL install instructions in work
-
-### Install:
-```bash
-   # Use installer in aws directory
-   # Confirmed working in aws t3-micro instance
-   sudo bash aws/install_obs.sh
-```
   
 ## Testing
 
