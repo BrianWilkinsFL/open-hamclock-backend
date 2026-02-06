@@ -55,6 +55,7 @@ for file in "${FILES[@]}"; do
     # 3. Create the subdirectory locally if it doesn't exist
     if [ "$DIR_NAME" != "." ]; then
         mkdir -p "$DIR_NAME"
+		chown -R www-data:www-data "$DIR_NAME"
     fi
 
     echo "Downloading: $REL_PATH"
@@ -64,6 +65,9 @@ for file in "${FILES[@]}"; do
     # -f: Fail on server errors (don't save 404 pages)
     # -z: Only download if remote is newer than local
     curl -sSLf -z "$REL_PATH" -o "$REL_PATH" "${REMOTE_URL}/${REL_PATH}"
+    
+	# Change ownership of data file to www-data
+    chown www-data:www-data "$REL_PATH" 
 
     # Check for success
     if [ $? -ne 0 ]; then
