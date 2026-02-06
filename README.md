@@ -8,6 +8,11 @@ This is a WIP.
 ## License
 MIT
 
+## Join us on Discord 💬
+We are building a community-powered backend to keep Ham Clock running. \
+Discord is where we can collaborate, troubleshoot, and exchange ideas — no RF license required 😎 \
+https://discord.gg/k2Nmdjup
+
 ## Attribution
 - MUF-RT: MUF-RT data for this map are from GIRO collected and used by permission from KC2G.
 - NOAA
