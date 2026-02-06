@@ -17,10 +17,11 @@ https://discord.gg/k2Nmdjup
 - MUF-RT: MUF-RT data for this map are from GIRO collected and used by permission from KC2G.
 - NOAA
 - NASA
-- HamWeekly.com
-- NG3K.com
-- ARNewsline.com
-- PSKReporter by Phillip Gladstone
+- [HamWeekly.com](https://hamweekly.com/)
+- [NG3K.com](https://www.ng3k.com/)
+- [ARNewsline.com](https://www.arnewsline.org/)
+- [PSKReporter](https://pskreporter.info/) by Phillip Gladstone
+- [WA7BNM Weekend Contests Calendar](https://www.contestcalendar.com/) 
 
 ## Vision
 The goal is to make this as a drop-in replacement for the HamClock backend by replicating the same client/server responses with Perl CGI scripting and static files. We don't have access to the backend server source code so this is completely created by looking at the interfaces. To allow existing HamClock's running on Arduino to continue to work, we will setup a local DNS sinkhole to redirect to your local backend running at your home or office. Or, the HamClock client may be modified to point to a new central server permanently or use the built-in -b option
