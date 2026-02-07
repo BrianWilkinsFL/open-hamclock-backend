@@ -4,16 +4,21 @@ set -euo pipefail
 OUTDIR="/opt/hamclock-backend/htdocs/ham/HamClock/maps"
 
 # All target WxH sizes for Clouds
-SIZES=(
-  "660x330"
-  "1320x660"
-  "1980x990"
-  "2640x1320"
-  "3960x1980"
-  "5280x2640"
-  "5940x2970"
-  "7920x3960"
-)
+#SIZES=(
+#  "660x330"
+#  "1320x660"
+#  "1980x990"
+#  "2640x1320"
+#  "3960x1980"
+#  "5280x2640"
+#  "5940x2970"
+#  "7920x3960"
+#)
+
+# Load unified size list
+# shellcheck source=/dev/null
+source "/opt/hamclock-backend/scripts/lib_sizes.sh"
+ohb_load_sizes
 
 FTP_DIR="ftp://public.sos.noaa.gov/rt/sat/linear/raw/"
 PATTERN='^linear_rgb_cyl_[0-9]{8}_[0-9]{4}\.jpg$'

@@ -18,16 +18,22 @@ TMPROOT="/opt/hamclock-backend/tmp"
 export MPLCONFIGDIR="$TMPROOT/mpl"
 
 # Your target sizes
-SIZES=(
-  "660x330"
-  "1320x660"
-  "1980x990"
-  "2640x1320"
-  "3960x1980"
-  "5280x2640"
-  "5940x2970"
-  "7920x3960"
-)
+#SIZES=(
+#  "660x330"
+#  "1320x660"
+#  "1980x990"
+#  "2640x1320"
+#  "3960x1980"
+#  "5280x2640"
+#  "5940x2970"
+#  "7920x3960"
+#)
+
+# Load unified size list
+# shellcheck source=/dev/null
+source "/opt/hamclock-backend/scripts/lib_sizes.sh"
+ohb_load_sizes
+
 
 # NOMADS GFS 0.25° subset endpoint (GRIB2 filter)
 NOMADS_FILTER="https://nomads.ncep.noaa.gov/cgi-bin/filter_gfs_0p25.pl"

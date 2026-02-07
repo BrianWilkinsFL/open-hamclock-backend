@@ -6,16 +6,21 @@ export LC_ALL=C
 
 OUTDIR="/opt/hamclock-backend/htdocs/ham/HamClock/maps"
 
-SIZES=(
-  "660x330"
-  "1320x660"
-  "1980x990"
-  "2640x1320"
-  "3960x1980"
-  "5280x2640"
-  "5940x2970"
-  "7920x3960"
-)
+#SIZES=(
+#  "660x330"
+#  "1320x660"
+#  "1980x990"
+#  "2640x1320"
+#  "3960x1980"
+#  "5280x2640"
+#  "5940x2970"
+#  "7920x3960"
+#)
+
+# Load unified size list
+# shellcheck source=/dev/null
+source "/opt/hamclock-backend/scripts/lib_sizes.sh"
+ohb_load_sizes
 
 SRC_URL="https://services.swpc.noaa.gov/images/d-rap/global.png"
 
