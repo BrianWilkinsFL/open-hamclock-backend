@@ -73,7 +73,7 @@ HamClock requests about 40+ artifacts. I have locally replicated all of them tha
 - [x] Bz/Bz.txt
 - [x] aurora/aurora.txt
 - [x] xray/xray.txt
-- [ ] worldwx/wx.txt
+- [x] worldwx/wx.txt
 - [x] esats/esats.txt
 - [x] solarflux/solarflux-history.txt
 - [x] ssn/ssn-history.txt
