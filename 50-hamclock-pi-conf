@@ -1,0 +1,19 @@
+# HamClock backend
+
+server.protocol-http11 = "disable"
+server.max-keep-alive-requests = 0
+
+cgi.assign = (
+  ".pl" => "/usr/bin/perl"
+)
+
+alias.url += (
+  "/ham/HamClock/" => "/opt/hamclock-backend/htdocs/ham/HamClock/"
+)
+
+$HTTP["url"] =~ "^/ham/HamClock/.*\\.pl$" {
+    cgi.assign = ( "" => "" )
+}
+
+dir-listing.activate = "disable"
+
