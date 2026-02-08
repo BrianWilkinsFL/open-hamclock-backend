@@ -38,14 +38,21 @@ echo
 echo "Currently building version '$TAG' of '$IMAGE_BASE'"
 pushd "$HERE/.." >/dev/null
 docker build --rm -t $IMAGE -f docker/Dockerfile .
+RETVAL=$?
 popd >/dev/null
 
-# basic info
-echo
-echo "Completed building '$IMAGE'."
-echo
-echo "If this is the first time you are running OHB, run setup first:"
-echo "    docker-ohb-setup.sh"
-echo
-echo "To start the container, launch with docker compose:"
-echo "    docker compose up -d"
+if [ $RETVAL -eq 0 ]; then
+    # basic info
+    echo
+    echo "Completed building '$IMAGE'."
+    echo
+    echo "If this is the first time you are running OHB, run setup first:"
+    echo "    docker-ohb-setup.sh"
+    echo
+    echo "To start the container, launch with docker compose:"
+    echo "    docker compose up -d"
+else
+    echo "build failed with error: $RETVAL"
+fi
+
+exit $RETVAL
