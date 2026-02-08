@@ -27,14 +27,14 @@ done
 sort -uo $SOURCE_FILE $SOURCE_FILE
 
 # check if the current file exists and was pulled by this script or generate
-# if not, clean it up
+# if not, remove from filelist and remove the md5 file
 cat /dev/null > $SOURCE_FILE.tmp
 while IFS= read -r line || [[ -n "$line" ]]; do
     KEEP_FILE=yes
     OUT_FILE=${OUT}${line}
     if [ -e $OUT_FILE -a -e $OUT_FILE.md5 ]; then
         LAST_MD5="$(cat $OUT_FILE.md5)"
-        CURRENT_MD5="$(md5sum $OUT_FILE)"
+        CURRENT_MD5="$(stat -c "%a %u %g %s %Y" $OUT_FILE | md5sum)"
         if [ "$LAST_MD5" != "$CURRENT_MD5" ]; then
             KEEP_FILE=no
         fi
@@ -46,7 +46,7 @@ while IFS= read -r line || [[ -n "$line" ]]; do
     if [ $KEEP_FILE == yes ]; then
         echo $line >> $SOURCE_FILE.tmp
     else
-        rm -f $OUT_FILE $OUT_FILE.md5
+        rm -f $OUT_FILE.md5
     fi
 done < $SOURCE_FILE
 mv $SOURCE_FILE.tmp $SOURCE_FILE
@@ -60,6 +60,6 @@ while IFS= read -r line || [[ -n "$line" ]]; do
     if [ $RETVAL -ne 0 ]; then
         echo "Failed to download from $URL" >&2
     else
-        md5sum $OUT_FILE > $OUT_FILE.md5
+        stat -c "%a %u %g %s %Y" $OUT_FILE | md5sum > $OUT_FILE.md5
     fi
 done < $SOURCE_FILE
