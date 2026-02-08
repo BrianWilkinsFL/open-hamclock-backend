@@ -43,6 +43,9 @@ popd >/dev/null
 # basic info
 echo
 echo "Completed building '$IMAGE'."
-echo "To start a container, setup first and then launch docker-compose:"
+echo
+echo "If this is the first time you are running OHB, run setup first:"
 echo "    docker-ohb-setup.sh"
+echo
+echo "To start the container, launch with docker-compose:"
 echo "    docker-compose up -d"
