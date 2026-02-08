@@ -54,4 +54,4 @@
 */5 * * * * OPENMETEO_CHUNK=200 OPENMETEO_REQS_PER_RUN=1 /usr/bin/perl /opt/hamclock-backend/scripts/update_world_wx.pl >>/opt/hamclock-backend/logs/worldwx.log 2>&1
 
 # This script will be removed when clearskyinstitute ceases to operate.
-55 * * * 0 /opt/hamclock-backend/scripts/get-missing-from-csi.sh >> /opt/hamclock-backend/logs/get-missing-from-csi.sh 2>&1
+55 * * * * /opt/hamclock-backend/scripts/get-missing-from-csi.sh >> /opt/hamclock-backend/logs/get-missing-from-csi.sh 2>&1
