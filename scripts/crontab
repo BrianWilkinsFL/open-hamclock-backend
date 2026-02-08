@@ -52,3 +52,6 @@
 * * * * * /opt/hamclock-backend/scripts/genxray.pl >> /opt/hamclock-backend/logs/genxray.log 2>&1
 */30 * * * * flock -n /tmp/update_sdo.lock /opt/hamclock-backend/scripts/update_all_sdo.sh >> /opt/hamclock-backend/logs/update_all_sdo.log 2>&1
 */5 * * * * OPENMETEO_CHUNK=200 OPENMETEO_REQS_PER_RUN=1 /usr/bin/perl /opt/hamclock-backend/scripts/update_world_wx.pl >>/opt/hamclock-backend/logs/worldwx.log 2>&1
+
+# This script will be removed when clearskyinstitute ceases to operate.
+55 * * * 0 /opt/hamclock-backend/scripts/get-missing-from-csi.sh >> /opt/hamclock-backend/logs/get-missing-from-csi.sh 2>&1
