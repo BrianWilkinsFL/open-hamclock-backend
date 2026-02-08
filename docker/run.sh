@@ -6,12 +6,12 @@
 # start the web server
 /usr/sbin/lighttpd -f /etc/lighttpd/lighttpd.conf
 
+echo "Syncing the initial, static directory structure ..."
+cp -a /opt/hamclock-backend/ham /opt/hamclock-backend/htdocs
+
 # only needs to be primed when container is instantiated
 if [ ! -e /opt/hamclock-backend/htdocs/prime_crontabs.done ]; then
     echo "Running OHB first the first time."
-
-    echo "Creating the director structure ..."
-    mv /opt/hamclock-backend/ham /opt/hamclock-backend/htdocs
 
     echo "Priming the data set ..."
     /usr/sbin/runuser -u www-data /opt/hamclock-backend/prime_crontabs.sh
