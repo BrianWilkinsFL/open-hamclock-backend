@@ -58,6 +58,9 @@ RUN cd /opt/hamclock-backend && \
     chown www-data:crontab /var/spool/cron/crontabs/www-data && \
     chmod 600 /var/spool/cron/crontabs/www-data && \
     # \
+    # set up logrotate \
+    mv ohb.logrotate /etc/logrotate.d/ohb && \
+    # \
     # set up lighttpd \
     mv 50-hamclock.conf /etc/lighttpd/conf-available/50-hamclock.conf && \
     /usr/sbin/lighty-enable-mod accesslog && \
