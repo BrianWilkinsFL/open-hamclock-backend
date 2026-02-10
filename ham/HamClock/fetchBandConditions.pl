@@ -22,6 +22,15 @@ if (!-d $RUN_DIR) {
     exit 0;
 }
 
+# Hardening for CGI under lighttpd (PATH/HOME often empty)
+$ENV{PATH}   = "/usr/local/bin:/usr/bin:/bin";
+$ENV{HOME}   = "/tmp";
+$ENV{TMPDIR} = "/tmp";
+$ENV{LC_ALL} = "C";
+$ENV{LANG}   = "C";
+
+my $VOACAPL = "/usr/local/bin/voacapl";   # change if different
+
 sub url_decode {
     my ($s) = @_;
     $s //= '';
@@ -187,7 +196,7 @@ $dat .= "LABEL     TX_QTH              RX_QTH\n";
 
 # FIX: robust CIRCUIT formatting so W/E never gets dropped/mis-columned
 $dat .= sprintf(
-  "CIRCUIT   %5s%1s   %6s%1s    %5s%1s    %6s%1s  %s     0\n",
+  "CIRCUIT   %5s%1s   %6s%1s    %5s%1s   %6s%1s  %s     0\n",
   $txlat_v, $txlat_h,
   $txlng_v, $txlng_h,
   $rxlat_v, $rxlat_h,
@@ -200,8 +209,8 @@ $dat .= sprintf("SYSTEM       1. %.0f. %.2f  90. %.1f 3.00 0.10\n",
 );
 
 $dat .= "FPROB      1.00 1.00 1.00 0.00\n";
-$dat .= sprintf("ANTENNA       1    1    2   30     0.000[default/isotrope     ]  0.0    %.4f\n", $pow_kw);
-$dat .= "ANTENNA       2    2    2   30     0.000[default/isotrope     ]  0.0    0.0000\n";
+$dat .= sprintf("ANTENNA       1    1    2   30     0.000[default/ccir.000     ]  0.0    %.4f\n", $pow_kw);
+$dat .= "ANTENNA       2    2    2   30     0.000[default/ccir.000     ]  0.0    0.0000\n";
 $dat .= $FREQ_CARD;
 $dat .= "METHOD       30    0\n";
 $dat .= "EXECUTE\n";
