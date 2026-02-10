@@ -257,7 +257,7 @@ sudo systemctl restart cron
 STEP=$((STEP+1)); progress $STEP $STEPS
 echo -e "${BLU}==> Installing logrotate config${NC}"
 
-sudo cp ohb.logrotate /etc/logrotate.d/ohb
+sudo cp "$BASE/ohb.logrotate" /etc/logrotate.d/ohb
 
 # ---------- initial gen ----------
 STEP=$((STEP+1)); progress $STEP $STEPS
