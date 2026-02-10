@@ -17,18 +17,6 @@ OUTDIR="/opt/hamclock-backend/htdocs/ham/HamClock/maps"
 TMPROOT="/opt/hamclock-backend/tmp"
 export MPLCONFIGDIR="$TMPROOT/mpl"
 
-# Your target sizes
-#SIZES=(
-#  "660x330"
-#  "1320x660"
-#  "1980x990"
-#  "2640x1320"
-#  "3960x1980"
-#  "5280x2640"
-#  "5940x2970"
-#  "7920x3960"
-#)
-
 # Load unified size list
 # shellcheck source=/dev/null
 source "/opt/hamclock-backend/scripts/lib_sizes.sh"
@@ -56,33 +44,48 @@ pick_and_download() {
   # - PRMSL at mean sea level
   # - UGRD/VGRD at 10 m above ground
   local url="${NOMADS_FILTER}?file=${file}"\
-"&lev_mean_sea_level=on&lev_10_m_above_ground=on"\
-"&var_PRMSL=on&var_UGRD=on&var_VGRD=on"\
-"&leftlon=0&rightlon=359.75&toplat=90&bottomlat=-90"\
-"&dir=${dir}"
+    "&lev_mean_sea_level=on&lev_10_m_above_ground=on"\
+    "&var_PRMSL=on&var_UGRD=on&var_VGRD=on"\
+    "&leftlon=0&rightlon=359.75&toplat=90&bottomlat=-90"\
+    "&dir=${dir}"
 
   echo "Trying GFS ${ymd} ${hh}Z ..."
-  if curl -fsS -A "open-hamclock-backend/1.0" --retry 2 --retry-delay 2 \
-      "$url" -o "$TMPDIR/gfs.grb2"; then
+  curl -fs -A "open-hamclock-backend/1.0" --retry 2 --retry-delay 2 "$url" -o "$TMPDIR/gfs.grb2"
+  RETVAL=$?
+  if [ $RETVAL -eq 0 ]; then
     echo "Downloaded: ${file} (${ymd} ${hh}Z)"
     echo "${ymd} ${hh}" > "$TMPDIR/gfs_cycle.txt"
-    return 0
+  else
+    echo "Curl error '$RETVAL' on GFS ${ymd} ${hh}Z"
   fi
-  return 1
+  return $RETVAL
 }
 
-TODAY_UTC="$(date -u +%Y%m%d)"
-YESTERDAY_UTC="$(date -u -d '1 day ago' +%Y%m%d)"
-CYCLES=(18 12 06 00)
+# NOAA typically makes the weather maps available 2-4 hours after nominal runtime
+# which is every 6 hours.
+MAP_INTERVAL=6
+MAP_READY=2
+NOW=$(date -d "$MAP_READY hours ago" +%s)
 
+# round down to the neeart 6-hour interval
+HOUR_NOW=$(date -d @$NOW +%H)
+START_TIME=$(($NOW - (($HOUR_NOW % $MAP_INTERVAL)*3600) ))
+
+# try back to 8 intervals
+NUM_TRYS=8
+
+# we want to throw an error if none of the attempts worked
 downloaded=0
-for d in "$TODAY_UTC" "$YESTERDAY_UTC"; do
-  for hh in "${CYCLES[@]}"; do
-    if pick_and_download "$d" "$hh"; then
-      downloaded=1
-      break 2
-    fi
-  done
+
+for ((try=0; try<$NUM_TRYS; try++)); do
+  check_time=$(($START_TIME - $MAP_INTERVAL*3600*$try))
+  d=$(date -u -d @${check_time} +%Y%m%d)
+  hh=$(date -u -d @${check_time} +%H)
+
+  if pick_and_download "$d" "$hh"; then
+    downloaded=1
+    break
+  fi
 done
 
 if [[ "$downloaded" -ne 1 ]]; then
