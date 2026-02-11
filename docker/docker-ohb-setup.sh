@@ -16,6 +16,9 @@ main() {
         rm)
             rm_setup
             ;;
+        recreate)
+            rm_setup && echo && setup
+            ;;
         '')
             setup
             ;;
@@ -44,7 +47,7 @@ rm_setup() {
     else
         echo "Failed to remove docker volume '$OHB_HTDOCS'. Probably the docker container needs to be stopped and removed."
     fi
-    exit $RETVAL
+    return $RETVAL
 }
 
 check_was_setup() {

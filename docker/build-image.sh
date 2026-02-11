@@ -34,6 +34,7 @@ $THIS:
         - remember to setup a buildx container: 
             docker buildx create --name ohb --driver docker-container --use
             docker buildx inspect --bootstrap
+    -n: add no-cache to build
 EOF
     exit 0
 }
@@ -42,6 +43,7 @@ main() {
     RETVAL=0
     ONLY_COMPOSE=false
     MULTI_PLATFORM=false
+    NOCACHE=false
 
     if [[ "$@" =~ --help ]]; then
         usage
@@ -59,6 +61,9 @@ main() {
                 ;;
             m)
                 MULTI_PLATFORM=true
+                ;;
+            n)
+                NOCACHE=true
                 ;;
             h)
                 usage
@@ -84,17 +89,9 @@ main() {
 }
 
 do_all() {
-    get_voacap
     make_docker_compose
     warn_image_tag
     build_image
-}
-
-get_voacap() {
-    # this hasn't changed since 2020. Also, while we are developing we don't need to keep pulling it.
-    if [ ! -e voacap-$VOACAP_VERSION.tgz ]; then
-        curl -s https://codeload.github.com/jawatson/voacapl/tar.gz/refs/tags/v.0.7.6 -o voacap-$VOACAP_VERSION.tgz
-    fi
 }
 
 make_docker_compose() {
@@ -124,6 +121,9 @@ warn_image_tag() {
 }
 
 build_image() {
+    if [ $NOCACHE == true ]; then
+        NOCACHE_ARG="--no-cache"
+    fi
     # Build the image
     echo
     echo "Building image for '$IMAGE_BASE:$TAG'"
@@ -132,7 +132,7 @@ build_image() {
     if [ $MULTI_PLATFORM == true ]; then
         docker buildx build -t $IMAGE -f docker/Dockerfile --platform linux/amd64,linux/arm64 --push .
     else
-        docker build -t $IMAGE -f docker/Dockerfile .
+        docker build $NOCACHE_ARG -t $IMAGE -f docker/Dockerfile .
     fi
     rm -f git.version
     RETVAL=$?
