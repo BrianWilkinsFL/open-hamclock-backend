@@ -5,6 +5,7 @@ export LC_ALL=C
 OUTDIR="/opt/hamclock-backend/htdocs/ham/HamClock/maps"
 TMPROOT="/opt/hamclock-backend/tmp"
 URL="https://services.swpc.noaa.gov/images/d-rap/global.png"
+DAY_WHITE_PCT="${DAY_WHITE_PCT:-18}"   # 0..40 is a sane tuning range
 
 need() { command -v "$1" >/dev/null 2>&1 || { echo "ERROR: missing command: $1" >&2; exit 1; }; }
 need curl
@@ -109,34 +110,32 @@ for sz in "${SIZES[@]}"; do
   W="${sz%x*}"
   H="${sz#*x}"
 
-  # Temp intermediates
-  resized_png="$TMPDIR/drap_${W}x${H}.png"
-  raw_rgb="$TMPDIR/drap_${W}x${H}.rgb"
+  resized_n_png="$TMPDIR/drapN_${W}x${H}.png"
+  resized_d_png="$TMPDIR/drapD_${W}x${H}.png"
+  raw_rgb_d="$TMPDIR/drapD_${W}x${H}.rgb"
+  raw_rgb_n="$TMPDIR/drapN_${W}x${H}.rgb"
 
-  # Final BMP names (tmp then installed to OUTDIR)
   day_bmp_tmp="$TMPDIR/map-D-${W}x${H}-DRAP-S.bmp"
   night_bmp_tmp="$TMPDIR/map-N-${W}x${H}-DRAP-S.bmp"
 
-  # Resize from canonical crop. Point/nearest reduces additional blur.
-  convert "$CROPPED" \
-    -resize "${W}x${H}!" \
-    +repage \
-    "$resized_png"
+  # Resize once for night
+  convert "$CROPPED" -resize "${W}x${H}!" +repage "$resized_n_png"
 
-  # Emit raw RGB888 bytes (exactly W*H*3)
-  convert "$resized_png" RGB:"$raw_rgb"
+  # Day = night + "white wash" (this is the “white mask” look)
+  convert "$resized_n_png" -fill white -colorize "${DAY_WHITE_PCT}%" "$resized_d_png"
 
-  # Convert raw -> BMPv4 RGB565 top-down (HamClock-friendly)
-  make_bmp_v4_rgb565_topdown "$raw_rgb" "$day_bmp_tmp" "$W" "$H"
-  cp -f "$day_bmp_tmp" "$night_bmp_tmp"
+  # Emit raw RGB and build distinct BMPs
+  convert "$resized_d_png" RGB:"$raw_rgb_d"
+  convert "$resized_n_png" RGB:"$raw_rgb_n"
+
+  make_bmp_v4_rgb565_topdown "$raw_rgb_d" "$day_bmp_tmp" "$W" "$H"
+  make_bmp_v4_rgb565_topdown "$raw_rgb_n" "$night_bmp_tmp" "$W" "$H"
 
   install -m 0644 "$day_bmp_tmp"   "$OUTDIR/map-D-${W}x${H}-DRAP-S.bmp"
   install -m 0644 "$night_bmp_tmp" "$OUTDIR/map-N-${W}x${H}-DRAP-S.bmp"
 
   zlib_compress "$OUTDIR/map-D-${W}x${H}-DRAP-S.bmp" "$OUTDIR/map-D-${W}x${H}-DRAP-S.bmp.z"
   zlib_compress "$OUTDIR/map-N-${W}x${H}-DRAP-S.bmp" "$OUTDIR/map-N-${W}x${H}-DRAP-S.bmp.z"
-
-  echo "Wrote map-[DN]-${W}x${H}-DRAP-S.bmp.z"
 done
 
 echo "OK: DRAP maps updated into $OUTDIR"
