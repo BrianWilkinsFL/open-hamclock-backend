@@ -107,7 +107,7 @@ make_docker_compose() {
 warn_image_tag() {
     if [ $TAG != latest ]; then
         if [ $MULTI_PLATFORM == true ]; then
-            docker manifest inspect komacke/open-hamclock-backend:latest >/dev/null
+            docker manifest inspect $IMAGE >/dev/null
             if [ $? -eq 0 ]; then
                 echo
                 echo "WARNING: the multiplatform docker image for '$IMAGE' already exists in Docker Hub. Please"

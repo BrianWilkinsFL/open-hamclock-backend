@@ -1,3 +1,6 @@
+#######################################################
+# Build the real image
+#######################################################
 FROM debian:13.3-slim
 
 USER root
@@ -6,30 +9,9 @@ WORKDIR /opt
 # Install prerequisites
 COPY docker/package-list.txt /opt
 RUN apt update && \
-    apt install -y $(grep -v '^#' package-list.txt) && \
+    apt install -y --no-install-recommends $(grep -v '^#' package-list.txt) && \
     apt-get clean && \
     rm -rf package-list.txt /var/lib/apt/lists/* 
-
-# Install voacap
-COPY docker/voacap-v.0.7.6.tgz /opt
-RUN cd /opt && \
-    # \
-    # tarball \
-    tar xzf voacap-v.0.7.6.tgz && \
-    cd voacapl-v.0.7.6 && \
-    # \
-    # build it \
-    ./configure && \
-    make install && \
-    # \
-    # configure it \
-    mkdir /var/www/itshfbc && \
-    chown www-data:www-data /var/www/itshfbc && \
-    runuser -u www-data makeitshfbc && \
-    # \
-    # clean up \
-    cd .. && \
-    rm -Rf voacapl-v.0.7.6 voacap-v.0.7.6.tgz
 
 # Install hamclock-backend
 COPY . /opt/hamclock-backend/
@@ -43,7 +25,8 @@ RUN cd /opt/hamclock-backend && \
         data \
         htdocs && \
     mv  docker/run.sh /opt && \
-    sed 's/^\([^ #]\+[ ]\+\)\{5\}\([^>]\+\)\([> ]\+\)\?\([^ ]*\).*$/\2\3\4/' scripts/crontab > prime_crontabs.sh && \
+    sed 's/^\([^ #]\+[ ]\+\)\{5\}\([^>]\+\)\([> ]\+\)\?\([^ ]*\).*$/echo "  Running: \2"\n\2\3\4/' \
+        scripts/crontab > prime_crontabs.sh && \
     # \
     # set permissions \
     chown -R www-data:www-data . && \
