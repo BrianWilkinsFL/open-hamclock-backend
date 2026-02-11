@@ -13,7 +13,7 @@ use Time::Seconds;
 
 my $URL   = 'https://services.swpc.noaa.gov/text/daily-solar-indices.txt';
 my $OUT   = '/opt/hamclock-backend/htdocs/ham/HamClock/ssn/ssn-31.txt';
-my $CACHE = '/opt/hamclock-backend/htdocs/ham/HamClock/ssn/ssn-cache.txt';
+my $CACHE = '/opt/hamclock-backend/data/ssn-cache.txt';
 
 my $TMPDIR = '/opt/hamclock-backend/tmp';
 

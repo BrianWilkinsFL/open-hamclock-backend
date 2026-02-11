@@ -3,7 +3,7 @@ use strict;
 use warnings;
 
 my $CACHE = '/opt/hamclock-backend/data/solarflux-cache.txt';
-my $OUT   = '/opt/hamclock-backend/htdocs/ham/HamClock/solarflux-99.txt';
+my $OUT   = '/opt/hamclock-backend/htdocs/ham/HamClock/solar-flux/solarflux-99.txt';
 
 my @values;
 
