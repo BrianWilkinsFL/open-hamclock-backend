@@ -2,6 +2,7 @@
 set -euo pipefail
 
 OUT="/opt/hamclock-backend/htdocs/ham/HamClock/Bz/Bz.txt"
+mkdir -p "$(dirname "$OUT")"
 TMP_OUT="${OUT}.tmp"
 
 SRC="https://services.swpc.noaa.gov/products/solar-wind/mag-6-hour.json"
