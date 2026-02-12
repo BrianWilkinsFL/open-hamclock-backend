@@ -151,10 +151,10 @@ To enable OHB dashboard, it is a manual install while it is being developed.
  sudo lighttpd -t -f /etc/lighttpd/lighttpd.conf
  Syntax OK
  sudo service lighttpd force-reload
- sudo -u /opt/hamclock-backend/*.pl /opt/hamclock-backend/htdocs
- sudo -u /opt/hamclock-backend/ascii.txt /opt/hamclock-backend/htdocs
- sudo -u /opt/hamclock-backend/index.html /opt/hamclock-backend/htdocs
- sudo -u /opt/hamclock-backend/traces.svg /opt/hamclock-backend/htdocs
+ sudo -u www-data cp /opt/hamclock-backend/*.pl /opt/hamclock-backend/htdocs
+ sudo -u www-data cp /opt/hamclock-backend/ascii.txt /opt/hamclock-backend/htdocs
+ sudo -u www-data cp /opt/hamclock-backend/index.html /opt/hamclock-backend/htdocs
+ sudo -u www-data cp /opt/hamclock-backend/traces.svg /opt/hamclock-backend/htdocs
 ```
 Ensure all scripts are owned by www-data under /opt/hamclock-backend/htdocs
 
