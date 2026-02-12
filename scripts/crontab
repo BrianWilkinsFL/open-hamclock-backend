@@ -29,7 +29,7 @@
 0 1 * * * /opt/hamclock-backend/scripts/gen_solarflux-history.sh >> /opt/hamclock-backend/logs/gen_solarflux-history.log >> 
 0 1 * * * /opt/hamclock-backend/scripts/gen_ssn_history.pl >> /opt/hamclock-backend/logs/gen_ssn_history.pl
 0 */3 * * * /opt/hamclock-backend/scripts/gen_ssn.pl >> /opt/hamclock-backend/logs/gen_ssn.cron.log 2>&1
-10 0 * * * /opt/hamclock-backend/scripts/gen_swind_24hr.pl > /opt/hamclock-backend/logs/gen_swind_24hr.log 2>&1
+10 0 * * * /opt/hamclock-backend/scripts/gen_swind_24hr.pl >> /opt/hamclock-backend/logs/gen_swind_24hr.log 2>&1
 */5 * * * * /opt/hamclock-backend/scripts/bzgen.sh >> /opt/hamclock-backend/logs/bzgen.log 2>&1
 15 3 * * 0 /opt/hamclock-backend/scripts/update_pota_parks_cache.sh >> /opt/hamclock-backend/logs/update_pota_parks_cache.log 2>&1
 15 */3 * * * /opt/hamclock-backend/scripts/update_solarflux_cache.pl >> /opt/hamclock-backend/logs/update_solarflux_cache.log 2>&1
