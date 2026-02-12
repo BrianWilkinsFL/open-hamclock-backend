@@ -62,14 +62,14 @@ echo "$CURRENT_VALID_DATE" > "$LAST_DATE_FILE"
 if [ -e "$OUTPUT" ]; then
     # last checked, CSI had 440 lines. Not sure how we maintains the file since the timestamps
     # are not uniformly spaced.
-    tail -n 424 "$OUTPUT" > "$TMPFILE"
+    tail -n 440 "$OUTPUT" > "$TMPFILE"
     echo "$NEW_ROW" >> "$TMPFILE"
 else
     # if the file doesn't exist, go backwards every 5 minutes which is a rough
     # approximation of what we see in real data
     EPOCH_TIME=$(echo $NEW_ROW | cut -d " " -f 1)
     ROW_TAIL=$(echo $NEW_ROW | cut -d " " -f 2-)
-    for i in {0..423}; do
+    for i in {0..439}; do
         echo "$(($EPOCH_TIME - 5 * 60 * $i)) $ROW_TAIL" >> "$TMPFILE"
     done
     sort -V -o $TMPFILE $TMPFILE
