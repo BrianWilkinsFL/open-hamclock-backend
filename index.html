@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Open HamClock Backend</title>
+
+<style>
+html,body{
+margin:0;
+height:100%;
+background:#05070c;
+color:#e6e6e6;
+font-family:system-ui,monospace;
+}
+
+.wrap{
+height:100%;
+display:flex;
+flex-direction:column;
+align-items:center;
+padding-top:20px;
+}
+
+img{
+max-width:420px;
+margin-bottom:8px;
+opacity:.95;
+}
+
+.title{
+letter-spacing:3px;
+font-size:20px;
+margin-bottom:8px;
+color:#d8e7ff;
+}
+
+.panel{
+margin-top:10px;
+border:1px solid #2b4a7a;
+background:rgba(5,10,25,.85);
+padding:16px 22px;
+box-shadow:0 0 25px rgba(100,160,255,.15);
+}
+
+pre{
+margin:0;
+font-size:13px;
+line-height:1.3;
+color:#f0f0f0;
+}
+
+iframe{
+border:none;
+margin-top:8px;
+filter:brightness(1.2);
+}
+
+.traces{
+position:absolute;
+top:0;
+left:0;
+width:100%;
+height:100%;
+opacity:.18;
+pointer-events:none;
+}
+
+.footer{
+margin-top:10px;
+font-size:11px;
+color:#9aa6bb;
+}
+</style>
+</head>
+
+<body>
+
+<div class="traces">
+<object type="image/svg+xml" data="/traces.svg"></object>
+</div>
+
+<div class="wrap">
+
+<div class="title">OPEN HAMCLOCK BACKEND</div>
+
+<div class="panel">
+
+<pre>Endpoints: /ham/HamClock/</pre>
+
+<iframe src="/status.pl" width=560 height=220></iframe>
+<iframe src="/metrics.pl" width=560 height=160></iframe>
+<iframe src="/heartbeat.pl" width=560 height=120></iframe>
+<iframe src="/jobs.pl" width=560 height=220></iframe>
+<iframe src="/tail.pl?file=lighttpd_error" width=760 height=200></iframe>
+
+</div>
+
+<div class="footer">
+OHB observability console
+</div>
+
+</div>
+
+</body>
+</html>
