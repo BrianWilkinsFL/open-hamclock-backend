@@ -1,6 +1,0 @@
-Wed Mar 19 23:36:03 2025 Z: malformed JSON string, neither tag, array, object, number, string or atom, at character offset 0 (before "(end of string)") at ./fetchAurora.pl line 80.
-
-Sat Mar 22 00:40:01 2025 Z: malformed JSON string, neither tag, array, object, number, string or atom, at character offset 0 (before "(end of string)") at ./fetchAurora.pl line 80.
-
-Mon Jan 19 14:37:54 2026 Z: malformed JSON string, neither tag, array, object, number, string or atom, at character offset 0 (before "(end of string)") at ./fetchAurora.pl line 80.
-
