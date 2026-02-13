@@ -109,6 +109,8 @@ DEFAULT_SIZES=( \
 
 Note: OHB will install default maps (Countries and Terrain) for all possible sizes. This does not incur any major CPU or RAM hit on small form factor PCs as it is just a download, extract and install
 
+After install, update your HamClock startup script to point to OHB. Then, reboot your HamClock.
+
 ## Starting HamClock with OHB Local Install
 HamClock is hard-coded to use the clearskyinstitute.com URL. You can override to use a new backend by starting HamClock with the -b option
 
