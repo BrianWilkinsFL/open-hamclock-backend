@@ -33,6 +33,58 @@ progress() {
   printf "${BLU}[%-50s] %d%%${NC}\n" "$(printf '#%.0s' $(seq 1 $((pct/2))))" "$pct"
 }
 
+write_version_file() {
+    cd "$BASE" || exit 1
+    GIT_SHA=$(git rev-parse --short HEAD)
+    BUILD_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+
+    echo "OHB_VERSION=$GIT_SHA" > "$BASE/htdocs/version.txt"
+    echo "OHB_BUILD_DATE=$BUILD_DATE" >> "$BASE/htdocs/version.txt"
+
+    echo -e "${GRN}[✓] Version file written ($GIT_SHA)${NC}"
+}
+
+preserve_maps() {
+    MAP_DIR="$BASE/htdocs/ham/HamClock/maps"
+
+    if [ -d "$MAP_DIR" ]; then
+        echo -e "${GRN}[✓] Maps detected — preserving existing map assets${NC}"
+        SKIP_MAP_INSTALL=1
+    else
+        SKIP_MAP_INSTALL=0
+    fi
+}
+
+# ---- image sizes (maps) ----
+DEFAULT_SIZES="660x330,1320x660,1980x990,2640x1320,3960x1980,5280x2640,5940x2970,7920x3960"
+OHB_SIZES="${OHB_SIZES:-$DEFAULT_SIZES}"
+
+usage() {
+  echo "Usage: $0 [--sizes WxH,WxH,...] [--size WxH ...] [--upgrade]"
+  echo "Example: $0 --sizes \"660x330,1320x660\""
+}
+
+is_size() { [[ "$1" =~ ^[0-9]+x[0-9]+$ ]]; }
+
+UPGRADE=0
+
+# accept flags (also allow OHB_SIZES env var)
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --upgrade)
+       UPGRADE=1; shift;;
+    --sizes)
+      shift; [[ $# -gt 0 ]] || { echo "ERROR: --sizes requires a value"; exit 1; }
+      OHB_SIZES="$1"; shift;;
+    --size)
+      shift; [[ $# -gt 0 ]] || { echo "ERROR: --size requires a value"; exit 1; }
+      if [[ -z "${_SIZES_SET:-}" ]]; then _SIZES_SET=1; OHB_SIZES=""; fi
+      OHB_SIZES+="${OHB_SIZES:+,}$1"; shift;;
+    -h|--help) usage; exit 0;;
+    *) echo "ERROR: unknown arg: $1"; usage; exit 1;;
+  esac
+done
+
 clear
 
 cat <<'EOF'
@@ -79,19 +131,27 @@ spinner $!
 
 # ---------- forced redeploy ----------
 STEP=$((STEP+1)); progress $STEP $STEPS
-echo -e "${BLU}==> Fetching OHB (forced redeploy)${NC}"
+echo -e "${BLU}==> Installing OHB${NC}"
 
 sudo mkdir -p "$BASE"
 
+if [ "$EUID" -eq 0 ]; then
+    git config --global --add safe.directory /opt/hamclock-backend 2>/dev/null || true
+fi
+
 if [ -d "$BASE/.git" ]; then
-  sudo git -C "$BASE" reset --hard HEAD >/dev/null
-  sudo git -C "$BASE" clean -fd >/dev/null
-  sudo git -C "$BASE" pull >/dev/null &
-  spinner $!
+    if [ "$UPGRADE" -eq 1 ]; then
+        echo -e "${BLU}==> Upgrading existing OHB checkout${NC}"
+        cd "$BASE" || exit 1
+        git fetch origin & spinner $!
+        git reset --hard origin/main & spinner $!
+    else
+        echo -e "${YEL}==> OHB already exists (use --upgrade to refresh)${NC}"
+	exit 1
+    fi
 else
-  sudo rm -rf "$BASE"/*
-  sudo git clone "$REPO" "$BASE" >/dev/null &
-  spinner $!
+    echo -e "${BLU}==> Fresh install: cloning OHB${NC}"
+    git clone "$REPO_URL" "$BASE" & spinner $!
 fi
 
 # git housekeeping
@@ -101,31 +161,7 @@ sudo git -C "$BASE" gc --prune=now >/dev/null || true
 
 sudo chown -R www-data:www-data "$BASE"
 
-# ---- image sizes (maps) ----
-DEFAULT_SIZES="660x330,1320x660,1980x990,2640x1320,3960x1980,5280x2640,5940x2970,7920x3960"
-OHB_SIZES="${OHB_SIZES:-$DEFAULT_SIZES}"
-
-usage() {
-  echo "Usage: $0 [--sizes WxH,WxH,...] [--size WxH ...]"
-  echo "Example: $0 --sizes \"660x330,1320x660\""
-}
-
-is_size() { [[ "$1" =~ ^[0-9]+x[0-9]+$ ]]; }
-
-# accept flags (also allow OHB_SIZES env var)
-while [[ $# -gt 0 ]]; do
-  case "$1" in
-    --sizes)
-      shift; [[ $# -gt 0 ]] || { echo "ERROR: --sizes requires a value"; exit 1; }
-      OHB_SIZES="$1"; shift;;
-    --size)
-      shift; [[ $# -gt 0 ]] || { echo "ERROR: --size requires a value"; exit 1; }
-      if [[ -z "${_SIZES_SET:-}" ]]; then _SIZES_SET=1; OHB_SIZES=""; fi
-      OHB_SIZES+="${OHB_SIZES:+,}$1"; shift;;
-    -h|--help) usage; exit 0;;
-    *) echo "ERROR: unknown arg: $1"; usage; exit 1;;
-  esac
-done
+# --- size logic ---
 
 # normalize + validate + dedupe
 OHB_SIZES="${OHB_SIZES//[[:space:]]/}"
@@ -161,7 +197,7 @@ sudo -u www-data env HOME="$BASE/tmp" XDG_CACHE_HOME="$BASE/tmp" PIP_CACHE_DIR="
 python3 -m venv "$VENV"
 
 sudo -u www-data env HOME="$BASE/tmp" XDG_CACHE_HOME="$BASE/tmp" PIP_CACHE_DIR="$BASE/tmp/pip-cache" \
-"$VENV/bin/pip" install --upgrade pip
+"$VENV/bin/pip" install --upgrade pip & spinner $!
 
 sudo -u www-data env HOME="$BASE/tmp" XDG_CACHE_HOME="$BASE/tmp" PIP_CACHE_DIR="$BASE/tmp/pip-cache" \
 "$VENV/bin/pip" install numpy pygrib matplotlib >/dev/null &
@@ -212,16 +248,18 @@ cd "$TMPMAP"
 # ensure zstd exists
 if ! command -v zstd >/dev/null; then
   echo -e "${BLU}==>Installing zstd...${NC}"
-  sudo apt-get install -y zstd >/dev/null
+  sudo apt-get install -y zstd >/dev/null & spinner $!
 fi
 
+STEP=$((STEP+1)); progress $STEP $STEPS
 echo -e "${BLU}==>Fetching maps from GitHub...${NC}"
 
-sudo -u www-data curl -fsSLO "$MAP_BASE/$MAP_ARCHIVE"
+sudo -u www-data curl -fsSLO "$MAP_BASE/$MAP_ARCHIVE" & spinner $!
 sudo -u www-data curl -fsSLO "$MAP_BASE/$MAP_SHA"
 
 # verify checksum
-sudo -u www-data sha256sum -c "$MAP_SHA"
+echo -e "${YEL}Verifying checksum...${NC}"
+sudo -u www-data sha256sum -c "$MAP_SHA" & spinner $!
 
 # extract directly into HamClock tree
 sudo tar -I zstd -xf "$MAP_ARCHIVE" -C "$BASE/htdocs/ham/HamClock"
@@ -229,7 +267,7 @@ sudo tar -I zstd -xf "$MAP_ARCHIVE" -C "$BASE/htdocs/ham/HamClock"
 # ownership sanity
 sudo chown -R www-data:www-data "$BASE/htdocs/ham/HamClock/maps"
 
-echo -e "${GRN}Maps installed.${NC}"
+echo -e "${GRN}[✓] Maps installed.${NC}"
 
 sudo chown -R www-data:www-data "$BASE"
 
@@ -368,6 +406,8 @@ run_sh  update_muf_rt_maps.sh
 VERSION=$(git -C "$BASE" describe --tags --dirty --always 2>/dev/null || echo "unknown")
 HOST=$(hostname)
 IP=$(hostname -I | awk '{print $1}')
+
+STEP=$((STEP+1)); progress $STEP $STEPS
 
 echo -e "${BLU}==>Integration test. You should see HTTP 200 and version 4.22${NC}"
 curl -i http://localhost/ham/HamClock/version.pl
