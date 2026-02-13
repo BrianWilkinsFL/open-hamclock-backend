@@ -42,20 +42,17 @@ Status: In Progress. We made progress by developing a script to create the base 
 - IP Geolocation will not work if API key not set. To fix, set API key in fetchIPGeoloc.pl
 - Root directories missing on install. Manually create cache, tmp, tmp/psk-cache, and logs if missing
 - One or more SDO images may report 'File is not BMP'. If this is the case, try switching to a different image temporarily
-- Raspberry Pi CPU Spikes due to image generation - on install specify the single image size you want - do not use the full image size bank!
-- Raspberry Pi needs to use 50-Hamclock-pi.conf in the repository instead of 50-Hamclock.conf for the lighttpd conf. Replace the configuration file at /etc/lighttpd/etc/conf.enabled with 50-Hamclock-pi.conf
-- Raspberry Pi may need permissions set on all scripts with chmod +x at /opt/hamclock-backend/htdocs/ham/HamClock. Execute chmod -R +x /opt/hamclock-backend/htdocs/ham/HamClock at the command line on the Raspberry Pi
-- DRAP data will show as invalid on fresh OHB installs because it takes approximately 36 hours to build up a suitable cache. The reason for this is because NOAA does not publish historical, current day data so if the application wants to show a time series graph including the current day then it needs to be pulling from NOAA SWX every five minutes. The fix for this when using OHB is to allow OHB to cache for 36 hours after a fresh install
+- Invalid data may display and it can take time for the backend to build up a suitable cache
   - Running the server data sync script will pull down the latest aurora and DRAP stats.txt file from an active HamClock server (Currently ClearSkyInstitute):
     - /opt/hamclock-backend/scripts/sync_server_data_files.sh
   
 
 ## Compatibility
-- [x] Ubuntu 22.x LTS
-- [x] Ubuntu 24 AWS AMI
+- [x] Ubuntu 22.x LTS (Baremetal, VM, or WSL)
+- [x] Ubuntu 24 AWS AMI (Baremetal, VM, or WSL)
 - [x] Debian 13.3 
-- [x] Raspberry Pi
-- [x] Windows Subsystem for Linux
+- [x] Raspberry Pi 3b+, 4, and 5
+     - [x] Tested Trixie 64 bit OS on Pi 3b+ with image sizes 660x330, 1320x660, and 2640x1320
 - [x] Inovato Quadra
 - [ ] Mac 
 
@@ -147,13 +144,10 @@ sudo crontab -u www-data -l | head
 To enable OHB dashboard, it is a manual install while it is being developed. 
 
 ```bash
- sudo cp /opt/hamclock-backend/50-ohb-dashboard.conf /etc/lighttpd/conf-enabled/
+ sudo cp /opt/hamclock-backend/lighttpd-conf/51-ohb-dashboard.conf /etc/lighttpd/conf-enabled/
  sudo lighttpd -t -f /etc/lighttpd/lighttpd.conf
  sudo service lighttpd force-reload
- sudo -u www-data cp /opt/hamclock-backend/*.pl /opt/hamclock-backend/htdocs
- sudo -u www-data cp /opt/hamclock-backend/ascii.txt /opt/hamclock-backend/htdocs
- sudo -u www-data cp /opt/hamclock-backend/index.html /opt/hamclock-backend/htdocs
- sudo -u www-data cp /opt/hamclock-backend/traces.svg /opt/hamclock-backend/htdocs
+ sudo -u www-data cp /opt/hamclock-backend/ham/dashboard/* /opt/hamclock-backend/htdocs
 ```
 Ensure all scripts are owned by www-data under /opt/hamclock-backend/htdocs
 

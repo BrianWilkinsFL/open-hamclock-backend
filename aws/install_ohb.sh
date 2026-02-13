@@ -74,7 +74,7 @@ git jq curl perl lighttpd imagemagick \
 libwww-perl libjson-perl libxml-rss-perl libxml-feed-perl libhtml-parser-perl \
 libeccodes-dev libpng-dev libtext-csv-xs-perl librsvg2-bin ffmpeg \
 python3 python3-venv python3-dev python3-requests build-essential gfortran gcc make libc6-dev \
-libx11-dev libxaw7-dev libxmu-dev libxt-dev libmotif-dev wget >/dev/null &
+libx11-dev libxaw7-dev libxmu-dev libxt-dev libmotif-dev wget logrotate >/dev/null &
 spinner $!
 
 # ---------- forced redeploy ----------
@@ -211,11 +211,11 @@ cd "$TMPMAP"
 
 # ensure zstd exists
 if ! command -v zstd >/dev/null; then
-  echo "Installing zstd..."
+  echo -e "${BLU}==>Installing zstd...${NC}"
   sudo apt-get install -y zstd >/dev/null
 fi
 
-echo "Fetching maps from GitHub..."
+echo -e "${BLU}==>Fetching maps from GitHub...${NC}"
 
 sudo -u www-data curl -fsSLO "$MAP_BASE/$MAP_ARCHIVE"
 sudo -u www-data curl -fsSLO "$MAP_BASE/$MAP_SHA"
@@ -237,7 +237,16 @@ sudo chown -R www-data:www-data "$BASE"
 STEP=$((STEP+1)); progress $STEP $STEPS
 echo -e "${BLU}==> Configuring lighttpd${NC}"
 
-sudo ln -sf "$BASE/50-hamclock.conf" /etc/lighttpd/conf-enabled/50-hamclock.conf
+. /etc/os-release
+
+if [[ -f /etc/rpi-issue ]]; then
+  echo -e "${YEL}Pi OS detected (${VERSION_CODENAME:-unknown})...${NC}"
+  sudo ln -sf "$BASE/lighttpd-conf/52-hamclock-pi.conf" /etc/lighttpd/conf-enabled/50-hamclock.conf
+else
+  echo -e "${YEL}Non-Pi OS detected (${ID:-?} ${VERSION_CODENAME:-unknown})...${NC}"
+  sudo ln -sf "$BASE/lighttpd-conf/50-hamclock.conf" /etc/lighttpd/conf-enabled/50-hamclock.conf
+fi
+
 sudo lighttpd -t -f /etc/lighttpd/lighttpd.conf
 
 # Enable CGI module; some distros return non-zero when it's already enabled
@@ -257,6 +266,8 @@ sudo lighttpd -t -f /etc/lighttpd/lighttpd.conf
 sudo systemctl daemon-reload
 sudo systemctl restart lighttpd
 
+echo -e "${GRN}lighttpd configured${NC}"
+
 # ---------- cron ----------
 STEP=$((STEP+1)); progress $STEP $STEPS
 echo -e "${BLU}==> Installing www-data crontab${NC}"
@@ -270,6 +281,7 @@ STEP=$((STEP+1)); progress $STEP $STEPS
 echo -e "${BLU}==> Installing logrotate config${NC}"
 
 sudo cp "$BASE/ohb.logrotate" /etc/logrotate.d/ohb
+sudo logrotate -d /etc/logrotate.conf
 
 # ---------- initial gen ----------
 STEP=$((STEP+1)); progress $STEP $STEPS
@@ -284,7 +296,7 @@ echo -e "${BLU}==> Initial backend pre-seed${NC}"
 sudo mkdir -p "$BASE/logs"
 sudo chown -R www-data:www-data "$BASE/logs"
 
-echo "Pre-seed running as:"
+echo -e "${YEL}Pre-seed running as: ${NC}"
 sudo -u www-data id
 
 seed_spinner() {
