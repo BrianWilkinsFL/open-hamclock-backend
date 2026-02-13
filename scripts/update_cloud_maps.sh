@@ -3,18 +3,6 @@ set -euo pipefail
 
 OUTDIR="/opt/hamclock-backend/htdocs/ham/HamClock/maps"
 
-# All target WxH sizes for Clouds
-#SIZES=(
-#  "660x330"
-#  "1320x660"
-#  "1980x990"
-#  "2640x1320"
-#  "3960x1980"
-#  "5280x2640"
-#  "5940x2970"
-#  "7920x3960"
-#)
-
 # Load unified size list
 # shellcheck source=/dev/null
 source "/opt/hamclock-backend/scripts/lib_sizes.sh"
@@ -36,6 +24,16 @@ need curl
 need convert
 need python3
 need install
+
+log() { printf '%s %s\n' "$(date '+%F %T%z')" "$*"; }
+
+filesize() {
+  # Linux stat
+  stat -c '%s' "$1" 2>/dev/null || wc -c <"$1"
+}
+
+start_epoch="$(date +%s)"
+created_ok=0
 
 mkdir -p "$OUTDIR"
 
@@ -161,7 +159,7 @@ for wh in "${SIZES[@]}"; do
   W="${wh%x*}"
   H="${wh#*x}"
 
-  echo "Generating Clouds ${W}x${H} ..."
+  log "INFO: generating Clouds ${W}x${H} from ${latest}"
 
   day_png="$TMPDIR/day_${W}x${H}.png"
   night_png="$TMPDIR/night_${W}x${H}.png"
@@ -196,7 +194,40 @@ for wh in "${SIZES[@]}"; do
 
   zlib_compress "$OUTDIR/map-D-${W}x${H}-Clouds.bmp" "$OUTDIR/map-D-${W}x${H}-Clouds.bmp.z"
   zlib_compress "$OUTDIR/map-N-${W}x${H}-Clouds.bmp" "$OUTDIR/map-N-${W}x${H}-Clouds.bmp.z"
+
+    # Verify outputs exist and are non-empty
+  day_out_bmp="$OUTDIR/map-D-${W}x${H}-Clouds.bmp"
+  night_out_bmp="$OUTDIR/map-N-${W}x${H}-Clouds.bmp"
+  day_out_z="$day_out_bmp.z"
+  night_out_z="$night_out_bmp.z"
+
+  for f in "$day_out_bmp" "$night_out_bmp" "$day_out_z" "$night_out_z"; do
+    if [[ ! -s "$f" ]]; then
+      log "ERROR: expected output missing/empty: $f"
+      exit 1
+    fi
+  done
+
+  # Verify .z actually decompresses into a BMP and has expected size
+  python3 - <<'PY' "$day_out_z" "$night_out_z" "$W" "$H"
+import sys, zlib, struct
+W, H = int(sys.argv[3]), int(sys.argv[4])
+exp = 122 + W*H*2  # BMPv4 header (122) + RGB565 pixels
+for p in sys.argv[1:3]:
+    data = zlib.decompress(open(p, "rb").read())
+    if data[:2] != b"BM":
+        raise SystemExit(f"BAD: {p} does not decompress to BMP (missing 'BM')")
+    if len(data) != exp:
+        raise SystemExit(f"BAD: {p} decompressed size {len(data)} != expected {exp}")
+PY
+
+  # Emit strong “created” log lines with byte sizes (easy to grep in cron logs)
+  log "CREATED: $day_out_bmp bytes=$(filesize "$day_out_bmp") zbytes=$(filesize "$day_out_z")"
+  log "CREATED: $night_out_bmp bytes=$(filesize "$night_out_bmp") zbytes=$(filesize "$night_out_z")"
+  created_ok=$((created_ok + 2))
+
 done
 
-echo "OK: updated Clouds from ${latest} (night multiply=${NIGHT_MULT} add=${NIGHT_ADD})"
-
+end_epoch="$(date +%s)"
+dur=$((end_epoch - start_epoch))
+log "OK: updated Clouds from ${latest} sizes=${#SIZES[@]} maps=${created_ok} duration_s=${dur} (night multiply=${NIGHT_MULT} add=${NIGHT_ADD})"
