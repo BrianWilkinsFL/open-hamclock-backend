@@ -6,7 +6,7 @@ use LWP::UserAgent;
 use Time::Local;
 
 my $INDEX = 'https://dxnews.com/dxpeditions/';
-my $OUT   = '/opt/hamclock-backend/htdocs/ham/HamClock/dxpeds/dxnews.tmp';
+my $OUT   = '/opt/hamclock-backend/cache/dxnews.tmp';
 
 my %mon = (
     jan=>0,feb=>1,mar=>2,apr=>3,may=>4,jun=>5,
@@ -55,17 +55,27 @@ for my $url (sort keys %urls) {
 
     # -------- DATE RANGE --------
     my ($sm,$sd,$em,$ed,$yr);
-    if ($p =~ m{
-        (\d{1,2})\s+([A-Za-z]+)\s*[-–]\s*
-        (\d{1,2})\s+([A-Za-z]+)\s+(\d{4})
-    }x) {
+	if ($p =~ m{
+		(\d{1,2})                  # $1: Start Day
+		(?:\s+([A-Za-z]+))?        # $2: Optional Start Month
+		\s*[-–]\s*                 # Divider (hyphen or en-dash)
+		(\d{1,2})\s+               # $3: End Day
+		([A-Za-z]+)\s+             # $4: End Month
+		(\d{4})                    # $5: Year
+	}x) {
         ($sd,$sm,$ed,$em,$yr) = ($1,$2,$3,$4,$5);
+        $sm //= $em;
     }
     elsif ($p =~ m{
-        ([A-Za-z]+)\s+(\d{1,2})\s*[-–]\s*
-        ([A-Za-z]+)\s+(\d{1,2}),\s*(\d{4})
+		([A-Za-z]+)\s+             # $1: Start Month
+		(\d{1,2})                  # $2: Start Day
+		\s*[-–]\s*                 # Divider (hyphen or en-dash)
+		(?:\s+([A-Za-z]+))?        # $3: Optional End Month
+		(\d{1,2})\s+               # $4: End Day
+		(\d{4})                    # $5: Year
     }x) {
         ($sm,$sd,$em,$ed,$yr) = ($1,$2,$3,$4,$5);
+        $em //= $sm;
     }
     else {
         next;
@@ -82,7 +92,7 @@ for my $url (sort keys %urls) {
     # -------- LOCATION --------
     my $loc = 'Unknown';
 
-    if ($p =~ m{<title>([^<]+)</title>}i) {
+    if ($p =~ m{<h1[^>]+([^<]+)</h1>}i) {
         my $t = $1;
 
         # Drop DXpedition / DXNews suffixes

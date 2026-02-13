@@ -7,8 +7,7 @@ use Time::Local;
 use File::Copy qw(move);
 
 my $URL = 'https://www.ng3k.com/Misc/adxo.html';
-my $OUT = '/opt/hamclock-backend/htdocs/ham/HamClock/dxpeds/ng3k.tmp';
-my $TMP = "$OUT.tmp";
+my $OUT = '/opt/hamclock-backend/cache/ng3k.tmp';
 
 my %mon = (
     Jan=>0, Feb=>1, Mar=>2, Apr=>3, May=>4, Jun=>5,
@@ -32,7 +31,7 @@ while ($html =~ m{
     .*?
     <td\s+class="cty">\s*(.*?)\s*</td>
     .*?
-    <td.*?class="call".*?>(.*?)</td>
+    <td.*?class="call">(?:<span.*?>)?(?:<a.*?>)?([^<]+)(?:<\/a>)?(?:<\/span>)?<\/td>
 }gsx) {
 
     my ($sy,$sm,$sd,$ey,$em,$ed,$loc,$call_html) =
@@ -81,7 +80,7 @@ while ($html =~ m{
 }
 
 # Write output atomically
-open my $fh, '>', $TMP or die "write failed\n";
+open my $fh, '>', $OUT or die "write failed\n";
 
 for my $r (sort { $a->{start} <=> $b->{start} } @records) {
     printf $fh "%d,%d,%s,%s,%s\n",
@@ -93,5 +92,3 @@ for my $r (sort { $a->{start} <=> $b->{start} } @records) {
 }
 
 close $fh;
-move $TMP, $OUT or die "move failed\n";
-

@@ -32,11 +32,16 @@
 10 0 * * * /opt/hamclock-backend/scripts/gen_swind_24hr.pl >> /opt/hamclock-backend/logs/gen_swind_24hr.log 2>&1
 */5 * * * * /opt/hamclock-backend/scripts/bzgen.sh >> /opt/hamclock-backend/logs/bzgen.log 2>&1
 15 3 * * 0 /opt/hamclock-backend/scripts/update_pota_parks_cache.sh >> /opt/hamclock-backend/logs/update_pota_parks_cache.log 2>&1
+
+# these 2 work together so stagger runs
 15 */3 * * * /opt/hamclock-backend/scripts/update_solarflux_cache.pl >> /opt/hamclock-backend/logs/update_solarflux_cache.log 2>&1
 20 */3 * * * /opt/hamclock-backend/scripts/publish_solarflux_99.pl >> /opt/hamclock-backend/logs/publish_solarflux_99.log 2>&1
+
+# these 3 work together so stagger runs
 25 0 * * * /opt/hamclock-backend/scripts/gen_dxnews.pl >> /opt/hamclock-backend/logs/gen_dxnews.log 2>&1
 30 0 * * * /opt/hamclock-backend/scripts/gen_ng3k.pl >> /opt/hamclock-backend/logs/gen_ng3k.log 2>&1
 35 0 * * * /opt/hamclock-backend/scripts/merge_dxpeditions.pl >> /opt/hamclock-backend/logs/merge_dxpeditions.log 2>&1
+
 5 */8 * * * /opt/hamclock-backend/scripts/gen_contest-calendar.sh >> /opt/hamclock-backend/logs/gen_contest-calendar.log 2>&1
 17 */12 * * * /opt/hamclock-backend/scripts/gen_kindex.pl >> /opt/hamclock-backend/logs/gen_kindex.log 2>&1
 0 */6 * * * /opt/hamclock-backend/scripts/fetch_tle.sh >> /opt/hamclock-backend/logs/fetch_tle.log 2>&1
@@ -55,5 +60,6 @@
 */15 * * * * /opt/hamclock-backend/scripts/update_drap_maps.sh >> /opt/hamclock-backend/logs/update_drap_maps.log 2>&1
 */15 * * * * /opt/hamclock-backend/scripts/update_aurora_maps.sh >> /opt/hamclock-backend/logs/update_aurora_maps.logs 2>&1
 15 * * * * /opt/hamclock-backend/scripts/update_wx_mb_maps.sh >> /opt/hamclock-backend/logs/update_wx_mb_maps.log 2>&1
+
 # This script will be removed when clearskyinstitute ceases to operate.
 55 * * * * /opt/hamclock-backend/scripts/get-missing-from-csi.sh >> /opt/hamclock-backend/logs/get-missing-from-csi.log 2>&1

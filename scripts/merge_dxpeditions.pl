@@ -3,10 +3,10 @@ use strict;
 use warnings;
 use File::Copy qw(move);
 
-my $DXNEWS = '/opt/hamclock-backend/htdocs/ham/HamClock/dxpeds/dxnews.tmp';
-my $NG3K   = '/opt/hamclock-backend/htdocs/ham/HamClock/dxpeds/ng3k.tmp';
+my $DXNEWS = '/opt/hamclock-backend/cache/dxnews.tmp';
+my $NG3K   = '/opt/hamclock-backend/cache/ng3k.tmp';
+my $TMP   = '/opt/hamclock-backend/cache/dxpeditions.tmp';
 my $OUT    = '/opt/hamclock-backend/htdocs/ham/HamClock/dxpeds/dxpeditions.txt';
-my $TMP    = "$OUT.tmp";
 
 my %dx;
 
