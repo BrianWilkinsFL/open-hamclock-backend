@@ -105,7 +105,7 @@ echo -e "${GRN}RF • Space • Propagation • Maps${NC}"
 echo
 
 # NOTE: you have 9 progress steps below
-STEPS=9
+STEPS=14
 STEP=0
 
 # ---------- sanity ----------
