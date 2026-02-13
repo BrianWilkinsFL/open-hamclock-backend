@@ -1,5 +1,0 @@
-curl: (28) Resolving timed out after 10000 milliseconds
-curl: (28) Resolving timed out after 10000 milliseconds
-curl: (28) Resolving timed out after 10000 milliseconds
-curl: (28) Resolving timed out after 10000 milliseconds
-curl: (28) Resolving timed out after 10000 milliseconds
