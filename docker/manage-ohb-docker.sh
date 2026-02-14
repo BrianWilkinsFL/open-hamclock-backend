@@ -24,6 +24,9 @@ main() {
         check-docker)
             check_docker_installed
             ;;
+        check-ohb-install)
+            check_ohb_installed
+            ;;
         install)
             shift && get_compose_opts "$@"
             install_ohb
@@ -95,6 +98,9 @@ $THIS <COMMAND> [options]:
     check-docker:
             checks docker requirements and shows version
 
+    check_ohb_install:
+            checkif OHB is installed and report versions
+
     install [-p <port>] [-t <tag>]
             do a fresh install and optionally provide the version
             -p: set the HTTP port
@@ -109,6 +115,14 @@ $THIS <COMMAND> [options]:
             clear out all data and start fresh
             -p: set the HTTP port (defaults to current setting)
             -t: set image tag
+
+    up [-p <port>] [-t <tag>]
+            start an existing, not-running OHB install; defaults to current git tag if there is one. Otherwise you can provide one.
+            -p: set the HTTP port (defaults to current setting)
+            -t: set image tag
+
+    down
+            stop a running OHB install
 
     remove: 
             stop and remove the docker container, docker storage and docker image
@@ -145,6 +159,52 @@ install_ohb() {
         return $RETVAL
     fi
     return $RETVAL
+}
+
+check_ohb_installed() {
+    echo "Checking for docker ..."
+    if ! check_docker_installed | sed 's/^/  /'; then
+        RETVAL=1
+        return $RETVAL
+    fi
+    echo
+
+    if is_dvc_exists; then
+        echo "OHB is installed"
+    else
+        echo "OHB does not appear to be installed."
+        RETVAL=1
+        return $RETVAL
+    fi
+
+    get_current_image_tag
+    if [ -z "$CURRENT_TAG" ]; then
+        echo "OHB does not appear to be running. Try running '$THIS up'"
+        RETVAL=1
+        return $RETVAL
+    else
+        get_current_http_port
+        echo
+        echo "  Base docker image: '$CURRENT_IMAGE_BASE'"
+        echo "  Docker image tag:  '$CURRENT_TAG'"
+        echo "  HTTP PORT in use:  '$CURRENT_HTTP_PORT'"
+    fi
+    if ! docker ps --format '{{.Names}}' | grep -wqs $CONTAINER; then
+        echo
+        echo "OHB appears to be in a failed state. Try '$THIS up' and look for docker errors."
+    fi
+
+    GIT_VERSION=$(git rev-parse --short HEAD 2>/dev/null)
+    if [ -n "$GIT_VERSION" ]; then
+        echo
+        echo "You appear to have OHB source code checked out from git."
+        echo
+        if [ -n "$GIT_TAG" ]; then
+            echo "  On a tagged release: '$GIT_TAG'"
+        else
+            echo "  Not on a tagged release. git hash: '$GIT_VERSION'"
+        fi
+    fi
 }
 
 upgrade_ohb() {
@@ -279,44 +339,67 @@ get_current_http_port() {
 }
 
 get_current_image_tag() {
-    DOCKER_IMAGE=$(docker inspect open-hamclock-backend 2>/dev/null | jq -r '.[0].Config.Image')
-    if [ "$DOCKER_IMAGE" != 'null' ]; then
-        CURRENT_TAG=${DOCKER_IMAGE#*:}
+    CURRENT_DOCKER_IMAGE=$(docker inspect open-hamclock-backend 2>/dev/null | jq -r '.[0].Config.Image')
+    if [ "$CURRENT_DOCKER_IMAGE" != 'null' ]; then
+        CURRENT_TAG=${CURRENT_DOCKER_IMAGE#*:}
+        CURRENT_IMAGE_BASE=${CURRENT_DOCKER_IMAGE%:*}
+    fi
+}
+
+determine_port() {
+    get_current_http_port
+
+    # first precedence
+    if [ -n "$REQUESTED_HTTP_PORT" ]; then
+        HTTP_PORT=$REQUESTED_HTTP_PORT
+
+    # second precedence
+    elif [ -n "$CURRENT_HTTP_PORT" -a "$CURRENT_HTTP_PORT" != ':' ]; then
+        HTTP_PORT=$CURRENT_HTTP_PORT
+
+    # third precedence
+    else
+        HTTP_PORT=$DEFAULT_HTTP_PORT
+    fi
+
+    # if there was a :, it was probably IP:PORT; otherwise make sure there's a colon for port only
+    [[ $HTTP_PORT =~ : ]] || HTTP_PORT=":$HTTP_PORT"
+}
+
+determine_tag() {
+    get_current_image_tag
+
+    # first precedence
+    if [ -n "$REQUESTED_TAG" ]; then
+        TAG=$REQUESTED_TAG
+        return
+    fi
+
+    # upgrade wouldn't use the current tag unless it's latest. 
+    # GIT_TAG would be empty and we'll get DEFAULT_TAG
+
+    # second precedence
+    # FUNCNAME is a stack of nested function calls
+    if [ -n "$CURRENT_TAG" -a ${FUNCNAME[3]} != upgrade_ohb ]; then
+        TAG=$CURRENT_TAG
+
+    # third precedence
+    elif [ -n "$GIT_TAG" ]; then 
+        TAG=$GIT_TAG
+
+    # forth precedence
+    else
+        TAG=$DEFAULT_TAG
     fi
 }
 
 docker_compose_yml() {
-    get_current_http_port
-    get_current_image_tag
+    determine_port
 
-    if [ -n "$REQUESTED_HTTP_PORT" ]; then
-        # first precedence
-        HTTP_PORT=$REQUESTED_HTTP_PORT
-    elif [ -n "$CURRENT_HTTP_PORT" -a "$CURRENT_HTTP_PORT" != ':' ]; then
-        # second precedence
-        HTTP_PORT=$CURRENT_HTTP_PORT
-    else
-        # third precedence
-        HTTP_PORT=$DEFAULT_HTTP_PORT
-    fi
-    # if there was a :, it was probably IP:PORT; otherwise make sure there's a colon for port only
-    [[ $HTTP_PORT =~ : ]] || HTTP_PORT=":$HTTP_PORT"
-
-    if [ -n "$REQUESTED_TAG" ]; then
-        # first precedence
-        TAG=$REQUESTED_TAG
-    elif [ -n "$GIT_TAG" ]; then 
-        # second precedence
-        TAG=$GIT_TAG
-    elif [ -n "$CURRENT_TAG" ]; then
-        # third precedence
-        TAG=$CURRENT_TAG
-    else
-        # forth precedence
-        TAG=$DEFAULT_TAG
-    fi
-
+    determine_tag
     IMAGE=$IMAGE_BASE:$TAG
+    # FUNCNAME is a stack of nested function calls
+    [ "$TAG" == "$CURRENT_TAG"  -a "${FUNCNAME[2]}" == upgrade_ohb ] && docker pull $IMAGE
 
     docker_compose_yml_tmpl | 
         sed "s/__DOCKER_PROJECT__/$DOCKER_PROJECT/" |
