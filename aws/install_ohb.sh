@@ -254,7 +254,11 @@ sudo lighttpd -t -f /etc/lighttpd/lighttpd.conf
 
 # Disable conflicting javascript conf
 sudo lighttpd-disable-mod javascript-alias || true
-ls /etc/lighttpd/conf-enabled | grep javascript
+if ls /etc/lighttpd/conf-enabled | grep -q javascript; then
+  echo "javascript conf still enabled"
+else
+  echo "javascript conf not present in conf-enabled (expected)"
+fi
 
 sudo lighttpd -tt -f /etc/lighttpd/lighttpd.conf
 sudo systemctl reload lighttpd
