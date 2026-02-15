@@ -327,6 +327,14 @@ seed_spinner() {
   printf "\r${GRN}[✓] Done           ${NC}\n"
 }
 
+run_python() {
+  local f=$1
+  local log="$BASE/logs/${f%.py}.log"
+  echo -e "${YEL}Running python3 $f${NC}"
+  sudo -u www-data env OHB_SIZES="$OHB_SIZES" /usr/bin/python3 "$BASE/scripts/$f" >> "$log" 2>&1 &
+  seed_spinner $!
+}
+
 run_perl() {
   local f=$1
   local log="$BASE/logs/${f%.pl}.log"
@@ -375,7 +383,7 @@ run_sh  gen_noaaswx.sh
 run_sh  update_all_sdo.sh
 run_sh  update_aurora_maps.sh
 run_perl gen_onta.pl
-run_sh  bzgen.sh
+run_py  bz_simple.py
 run_sh  gen_drap.sh
 run_perl genxray.pl
 run_sh  update_muf_rt_maps.sh
