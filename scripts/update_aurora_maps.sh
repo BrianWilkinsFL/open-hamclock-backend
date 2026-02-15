@@ -75,7 +75,7 @@ for SZ in "${SIZES[@]}"; do
 
   convert "$PNG" -resize "${SZ}!" "$PNG_FIXED" || { echo "resize failed for $SZ"; continue; }
 
-#  convert "$PNG_FIXED" -flip "$PNG_FIXED"
+  convert "$PNG_FIXED" -flip "$PNG_FIXED"
 
   echo "  -> PNG_FIXED=$PNG_FIXED"
   convert "$PNG_FIXED" \
@@ -104,7 +104,7 @@ data = open("$BMP","rb").read()
 open("$BMP.z","wb").write(zlib.compress(data,9))
 EOF
 
-#rm -f "$PNG" "$BMP"
+rm -f "$PNG" "$BMP"
 
 done
 
