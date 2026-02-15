@@ -1,0 +1,29 @@
+name: Release with manage-ohb-docker.sh asset
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'Tag name (e.g., v0.0.1)'
+        required: true
+        default: 'v0.0.0'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # Required to create releases
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Create Release and Upload Asset
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Grabs file from repo tree and uploads with a label
+          gh release create ${{ github.event.inputs.tag_name }} \
+            './docker/manage-ohb-docker.sh#Manage Docker Installs' \
+            --title "Release ${{ github.event.inputs.tag_name }}" \
+            --generate-notes
