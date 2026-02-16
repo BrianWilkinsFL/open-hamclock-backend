@@ -1,9 +1,7 @@
 /opt/hamclock-backend/logs/*.log {
-        weekly
-        missingok
-        rotate 12
-        compress
-        delaycompress
-        notifempty
-        sharedscripts
+    weekly
+    rotate 12
+    missingok
+    notifempty
+    create 0664 www-data www-data
 }
