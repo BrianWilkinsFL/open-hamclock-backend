@@ -162,7 +162,7 @@ sudo -u www-data env HOME="$BASE/tmp" XDG_CACHE_HOME="$BASE/tmp" PIP_CACHE_DIR="
 "$VENV/bin/pip" install --upgrade pip
 
 sudo -u www-data env HOME="$BASE/tmp" XDG_CACHE_HOME="$BASE/tmp" PIP_CACHE_DIR="$BASE/tmp/pip-cache" \
-"$VENV/bin/pip" install numpy pygrib matplotlib pandas >/dev/null &
+"$VENV/bin/pip" install requests numpy pygrib matplotlib pandas >/dev/null &
 spinner $!
 
 # ---------- relocate ham ----------
@@ -193,6 +193,30 @@ sudo mkdir -p \
  "$BASE/htdocs/ham/HamClock" \
  "$BASE/htdocs/ham/HamClock/Bz" \
  "$BASE/htdocs/ham/HamClock/geomag"
+
+# Address log existing with correct perms and keep logrotate happy
+
+sudo chown root:root /opt/hamclock-backend/logs
+sudo chmod 0755 /opt/hamclock-backend/logs
+
+LOGDIR=/opt/hamclock-backend/logs
+sudo -u www-data /bin/sh -c '
+  umask 002
+  for f in \
+    bz_simple.log flux_simple.log gen_aurora.log gen_contest-calendar.log \
+    gen_drap.log gen_dxnews.log gen_kindex.log gen_ng3k.log gen_noaswxx.log \
+    gen_onta.log gen_solarflux-history.log gen_ssn_history.log gen_swind_24hr.log \
+    get-missing-from-csi.log merge_dxpeditions.log ssn_simple.log swind_simple.log \
+    update_all_sdo.log update_aurora_maps.logs update_cloud_maps.log update_drap_maps.log \
+    update_muf_rt_maps.log update_pota_parks_cache.log update_wx_mb_maps.log worldwx.log \
+    xray_simple.log fetch_tle.log gen_dst.log aurora_validate.log gen_noaaswx.log \
+  ; do
+    : >> "'"$LOGDIR"'/$f"
+  done
+'
+
+sudo chown www-data:www-data /opt/hamclock-backend/logs/*.log
+sudo chmod 0664 /opt/hamclock-backend/logs/*.log
 
 #Fix www-data gmt execution error
 sudo mkdir -p /var/www/.gmt
@@ -332,8 +356,17 @@ seed_spinner() {
 run_python() {
   local f=$1
   local log="$BASE/logs/${f%.py}.log"
-  echo -e "${YEL}Running python3 $f${NC}"
-  sudo -u www-data env OHB_SIZES="$OHB_SIZES" /usr/bin/python3 "$BASE/scripts/$f" >> "$log" 2>&1 &
+  echo -e "${YEL}Running $VENV/bin/python $f${NC}"
+
+  sudo -u www-data env \
+    HOME="$BASE/tmp" \
+    XDG_CACHE_HOME="$BASE/tmp" \
+    PIP_CACHE_DIR="$BASE/tmp/pip-cache" \
+    OHB_SIZES="$OHB_SIZES" \
+    PATH="$VENV/bin:$PATH" \
+    VIRTUAL_ENV="$VENV" \
+    "$VENV/bin/python" "$BASE/scripts/$f" >>"$log" 2>&1 &
+
   seed_spinner $!
 }
 
@@ -408,4 +441,3 @@ echo -e "${GRN}===========================================${NC}"
 echo
 echo -e "${YEL}If using WSL2 ensure systemd=true in /etc/wsl.conf${NC}"
 echo
-
