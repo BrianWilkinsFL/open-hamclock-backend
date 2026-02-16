@@ -364,7 +364,7 @@ run_flock_sh() {
 # ---- ordered execution ----
 
 run_sh  gen_solarflux-history.sh
-run_perl gen_swind_24hr.pl
+run_python swind_simple.py
 run_python ssn_simple.py
 run_perl gen_ssn_history.pl
 run_sh  update_pota_parks_cache.sh

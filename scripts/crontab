@@ -29,8 +29,8 @@
 0 1 * * * /opt/hamclock-backend/scripts/gen_solarflux-history.sh >> /opt/hamclock-backend/logs/gen_solarflux-history.log >> 
 0 1 * * * /opt/hamclock-backend/scripts/gen_ssn_history.pl >> /opt/hamclock-backend/logs/gen_ssn_history.pl
 15 10,14 * * * /usr/bin/python3 /opt/hamclock-backend/scripts/ssn_simple.py /opt/hamclock-backend/logs/ssn_simple.log 2>&1
-10 0 * * * /opt/hamclock-backend/scripts/gen_swind_24hr.pl >> /opt/hamclock-backend/logs/gen_swind_24hr.log 2>&1
-*/10 * * * * /usr/bin/python3 /opt/hamclock-backend/scripts/bz_simple.py >> /opt/hamclock-backend/logs/bz_simple.log 2>&1
+*/5 * * * * /usr/bin/python3 /opt/hamclock-backend/scripts/swind_simple.py >> /opt/hamclock-backend/logs/gen_swind_24hr.log 2>&1
+*/10 * * * * /usr/bin/python2 /opt/hamclock-backend/scripts/bz_simple.py >> /opt/hamclock-backend/logs/bz_simple.log 2>&1
 15 3 * * 0 /opt/hamclock-backend/scripts/update_pota_parks_cache.sh >> /opt/hamclock-backend/logs/update_pota_parks_cache.log 2>&1
 
 # these 2 work together so stagger runs
