@@ -26,6 +26,29 @@ https://discord.gg/wb8ATjVn6M
 - [WA7BNM Weekend Contests Calendar](https://www.contestcalendar.com/)
 - [Amateur Radio Country Files](https://www.country-files.com/big-cty/)
 
+## Data sources and attribution
+
+Sunspot numbers published in `ssn-31.txt` are derived from the following public datasets:
+
+1. **NOAA / NWS Space Weather Prediction Center (SWPC) — Daily Solar Data (DSD.txt)**
+   - Source: SWPC Data Service text product **`daily-solar-indices.txt`** (“Last 30 Days Daily Solar Data”).
+   - Use in this project: parses the daily **SESC Sunspot Number** column for historical days.
+   - URL: https://services.swpc.noaa.gov/text/daily-solar-indices.txt
+
+2. **NOAA / NWS Space Weather Prediction Center (SWPC) — Solar-cycle JSON**
+   - Source: SWPC Data Service JSON **`swpc_observed_ssn.json`**.
+   - Use in this project: uses **`swpc_ssn`** for the **current UTC day** (when present), to avoid the common 1-day lag in the “Last 30 Days” text product.
+   - URL: https://services.swpc.noaa.gov/json/solar-cycle/swpc_observed_ssn.json
+
+3. **SILSO (Royal Observatory of Belgium / SIDC) — Estimated International Sunspot Number (EISN)**
+   - Source: **`EISN_current.txt`** (plain ASCII fixed-width format).
+   - Use in this project: **fallback only** for the **current UTC day** if SWPC solar-cycle JSON does not yet include today’s value.
+   - URL: https://sidc.be/SILSO/DATA/EISN/EISN_current.txt
+
+### Notes
+- “Today” is determined using **UTC**.
+- All data remain the property of their respective providers; this project redistributes derived values and does not claim ownership of the underlying observations or indices.
+
 ## Vision
 The goal is to make this as a drop-in replacement for the HamClock backend by replicating the same client/server responses with Perl CGI scripting and static files. We don't have access to the backend server source code so this is completely created by looking at the interfaces. The goal is to allow for local or central install of OHB to keep all existing HamClock's from working beyond June 2026
 
