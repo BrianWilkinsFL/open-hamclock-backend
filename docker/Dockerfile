@@ -25,6 +25,11 @@ RUN cd /opt/hamclock-backend && \
         data \
         htdocs && \
     mv  docker/run.sh /opt && \
+    # \
+    # cron is tightly coupled to the type of python install. cron is written for pyenv. however \
+    # when there is no pip or pyenv, python runs from /usr. \
+    sed -i 's|^VENV=.*|VENV=/usr|' scripts/crontab && \
+    # \
     # This crazy line takes the crontab file, removes the stderr redirect and adds echos to track progress. \
     # It generates a file that will be run only once on a fresh install \
     awk '/^[0-9\*]/ {full=$0; $1=$2=$3=$4=$5=""; sub(/^[ \t]+/, "", $0); exec=$0; sub(/[[:space:]]*[>|].*$/, "", exec); print "echo \"Running: " exec "\""; print $0; next} {print}' scripts/crontab | sed 's/[[:space:]]*2>&1//g' > prime_crontabs.sh && \

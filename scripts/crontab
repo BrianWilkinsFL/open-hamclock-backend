@@ -37,12 +37,12 @@ PATH=/opt/hamclock-backend/venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/us
 LC_ALL=C
 LANG=C
 
-15 10,14 * * * $VENV/bin/python $BASE/scripts/ssn_simple.py   >> $BASE/logs/ssn_simple.log 2>&1
-*/5 * * * *    $VENV/bin/python $BASE/scripts/swind_simple.py >> $BASE/logs/gen_swind_24hr.log 2>&1
-*/10 * * * *   $VENV/bin/python $BASE/scripts/bz_simple.py    >> $BASE/logs/bz_simple.log 2>&1
-7,37 * * * *   $VENV/bin/python $BASE/scripts/flux_simple.py  >> $BASE/logs/flux_simple.log 2>&1
-*/5 * * * *    $VENV/bin/python $BASE/scripts/xray_simple.py  >> $BASE/logs/xray_simple.log 2>&1
-*/15 * * * *   $VENV/bin/python $BASE/scripts/kindex_simple.py > $BASE/htdocs/ham/HamClock/geomag/kindex.txt.tmp && mv -f $BASE/htdocs/ham/HamClock/geomag/kindex.txt.tmp $BASE/htdocs/ham/HamClock/geomag/kindex.txt
+15 10,14 * * * $VENV/bin/python3 $BASE/scripts/ssn_simple.py   >> $BASE/logs/ssn_simple.log 2>&1
+*/5 * * * *    $VENV/bin/python3 $BASE/scripts/swind_simple.py >> $BASE/logs/gen_swind_24hr.log 2>&1
+*/10 * * * *   $VENV/bin/python3 $BASE/scripts/bz_simple.py    >> $BASE/logs/bz_simple.log 2>&1
+7,37 * * * *   $VENV/bin/python3 $BASE/scripts/flux_simple.py  >> $BASE/logs/flux_simple.log 2>&1
+*/5 * * * *    $VENV/bin/python3 $BASE/scripts/xray_simple.py  >> $BASE/logs/xray_simple.log 2>&1
+*/15 * * * *   $VENV/bin/python3 $BASE/scripts/kindex_simple.py > $BASE/htdocs/ham/HamClock/geomag/kindex.txt.tmp && mv -f $BASE/htdocs/ham/HamClock/geomag/kindex.txt.tmp $BASE/htdocs/ham/HamClock/geomag/kindex.txt
 
 0 1 * * * /opt/hamclock-backend/scripts/gen_solarflux-history.sh >> /opt/hamclock-backend/logs/gen_solarflux-history.log 2>&1
 0 1 * * * /opt/hamclock-backend/scripts/gen_ssn_history.pl >> /opt/hamclock-backend/logs/gen_ssn_history.pl 2>&1
