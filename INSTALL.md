@@ -83,3 +83,20 @@ Note: Removing the cron jobs will stop all future background processes, not curr
 sudo crontab -u www-data /path/to/www-data.cron.backup
 sudo crontab -u www-data -l | head
 ```
+
+### API Keys
+Two services require API keys: openweathermaps.com and ipgeolocation.io.
+
+If openweathermaps doesn't get a key, HamClock will fall back to open-meteo.com. If ipgeolocation.io doesn't have a key, your HamCLock installation won't be able to pull up your location. Not the end of the world.
+
+If you have these keys, you can provide them to OHB by putting them into /opt/hamclock-backend/.env and formatting the contents like this:
+```
+# for the api.openweathermap.org API
+OPEN_WEATHER_API_KEY=<insert key here>
+
+# for the app.ipgeolocation.io API
+IPGEOLOC_API_KEY=<insert key here>
+```
+Replace \<insert key here\> with your respective key.
+
+Restart lighttpd after creating or modifying this file.
