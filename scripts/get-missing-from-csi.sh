@@ -6,6 +6,7 @@ HERE="$(realpath -s "$(dirname "$0")")"
 THIS="$(basename "$0")"
 
 # the file with the list of paths to pull is the same as this script
+
 SOURCE_FILE=$HERE/"${THIS%.*}".txt
 
 # the root URL source and the root file location
@@ -24,6 +25,11 @@ while IFS= read -r url || [[ -n "$url" ]]; do
     [[ "$url" == *".pl"* ]] || [[ "$url" == *".sh"* ]] && continue
     echo $url >> $SOURCE_FILE
 done
+
+if [ ! -e $SOURCE_FILE ]; then
+    echo "no 404's found to analyze."
+    exit 0
+fi
 sort -uo $SOURCE_FILE $SOURCE_FILE
 
 # check if the current file exists and was pulled by this script or generate
@@ -49,7 +55,13 @@ while IFS= read -r line || [[ -n "$line" ]]; do
         rm -f $OUT_FILE.md5
     fi
 done < $SOURCE_FILE
-mv $SOURCE_FILE.tmp $SOURCE_FILE
+if [ -s $SOURCE_FILE.tmp ]; then
+    mv $SOURCE_FILE.tmp $SOURCE_FILE
+else
+    echo "Everything is clean so no files to get."
+    rm -f $SOURCE_FILE.tmp $SOURCE_FILE
+    exit 0
+fi
 
 # get the file
 while IFS= read -r line || [[ -n "$line" ]]; do
