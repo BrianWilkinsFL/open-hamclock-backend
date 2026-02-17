@@ -65,6 +65,9 @@ pick_and_download() {
 # MAP_READY hours, then round down to the nearest 6-hour boundary in UTC (to match NOMADS
 # gfs.YYYYMMDD/HH/atmos directory naming).
 
+MAP_INTERVAL=6
+MAP_READY=2
+
 NOW=$(date -u -d "$MAP_READY hours ago" +%s)
 HOUR_NOW=$(date -u -d @$NOW +%H)
 START_TIME=$(($NOW - (($HOUR_NOW % $MAP_INTERVAL)*3600) ))
