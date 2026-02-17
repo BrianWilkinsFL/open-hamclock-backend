@@ -6,6 +6,7 @@ IMAGE_BASE=komacke/open-hamclock-backend
 # Get our directory locations in order
 HERE="$(realpath -s "$(dirname "$0")")"
 THIS="$(basename "$0")"
+STARTED_FROM="$PWD"
 cd $HERE
 
 DOCKER_PROJECT=${THIS%.*}
@@ -15,6 +16,7 @@ GIT_VERSION=$(git rev-parse --short HEAD 2>/dev/null)
 CONTAINER=${IMAGE_BASE##*/}
 DEFAULT_HTTP_PORT=:80
 REQUEST_DOCKER_PULL=false
+DEFAULT_ENV_FILE="$STARTED_FROM/.env"
 RETVAL=0
 
 main() {
@@ -41,12 +43,16 @@ main() {
             shift && get_compose_opts "$@"
             recreate_ohb
             ;;
-        remove)
-            remove_ohb
+        reset)
+            shift && get_compose_opts "$@"
+            docker_compose_reset
             ;;
         restart)
             shift && get_compose_opts "$@"
             docker_compose_restart
+            ;;
+        remove)
+            remove_ohb
             ;;
         up)
             shift && get_compose_opts "$@"
@@ -60,6 +66,10 @@ main() {
             shift && get_compose_opts "$@"
             generate_docker_compose
             ;;
+        add-env-file)
+            shift && get_compose_opts "$@"
+            copy_env_to_container
+            ;;
         *)
             echo "Invalid or missing option. Try using '$THIS help'."
             RETVAL=1
@@ -68,13 +78,16 @@ main() {
 }
 
 get_compose_opts() {
-    while getopts ":p:t:" opt; do
+    while getopts ":p:t:e:" opt; do
         case $opt in
             p)
                 REQUESTED_HTTP_PORT="$OPTARG"
                 ;;
             t)
                 REQUESTED_TAG="$OPTARG"
+                ;;
+            e)
+                REQUESTED_ENV_FILE="$OPTARG"
                 ;;
             \?) # Handle invalid options
                 echo "Command '$COMMAND': Invalid option: -$OPTARG" >&2
@@ -115,6 +128,12 @@ $THIS <COMMAND> [options]:
             -p: set the HTTP port (defaults to current setting)
             -t: set image tag
 
+    reset:
+            resets the OHB container to new but does not reset the persistent storage
+
+    restart:
+            restarts the OHB container. No file contents modified
+
     up [-p <port>] [-t <tag>]
             start an existing, not-running OHB install; defaults to current git tag if there is one. Otherwise you can provide one.
             -p: set the HTTP port (defaults to current setting)
@@ -126,8 +145,12 @@ $THIS <COMMAND> [options]:
     remove: 
             stop and remove the docker container, docker storage and docker image
 
-    restart:
-            restart OHB
+    add-env-file [-e <env file>]:
+            add .env to OHB. Defaults a file named '.env' in your PWD. The
+            .env file contains secrets such as api keys for services. If OHB
+            was already running, it needs to be restarted for the file
+            to take effect. See the restart command. See .env.example for more info.
+            -e: .env file location
 
     generate-docker-compose [-p <port>] [-t <tag>]: 
             writes the docker compose file to STDOUT
@@ -146,7 +169,7 @@ install_ohb() {
     if create_dvc; then
         echo "Persistent storage created successfully."
     else
-        echo "ERROR: failed to create persistence storage."
+        echo "ERROR: failed to create persistence storage." >&2
         return $RETVAL
     fi
 
@@ -154,7 +177,7 @@ install_ohb() {
     if docker_compose_up; then
         echo "Container started successfully."
     else
-        echo "ERROR: failed to start OHB with docker compose up"
+        echo "ERROR: failed to start OHB with docker compose up" >&2
         return $RETVAL
     fi
     return $RETVAL
@@ -263,8 +286,17 @@ check_dvc_created() {
 }
 
 docker_compose_up() {
-    docker_compose_yml && docker compose -f <(echo "$DOCKER_COMPOSE_YML") up -d
-    RETVAL=$?
+    if is_container_running; then
+        echo "OHB is already running."
+        RETVAL=0
+    else
+        docker_compose_yml && docker compose -f <(echo "$DOCKER_COMPOSE_YML") create 
+        if [ -n "$REQUESTED_ENV_FILE" -o -r "$DEFAULT_ENV_FILE" ]; then
+            copy_env_to_container >/dev/null
+        fi
+        docker_compose_yml && docker compose -f <(echo "$DOCKER_COMPOSE_YML") up -d
+        RETVAL=$?
+    fi
 
     return $RETVAL
 }
@@ -276,12 +308,12 @@ docker_compose_down() {
     if is_container_exists; then
         RUNNING_PROJECT=$(docker inspect open-hamclock-backend | jq -r '.[0].Config.Labels."com.docker.compose.project"')
         if [ "$RUNNING_PROJECT" != "$DOCKER_PROJECT" ]; then
-            echo "ERROR: this OHB was created with a different docker-compsose file. Please run"
-            echo "    'docker stop $CONTAINER'"
-            echo "    'docker rm $CONTAINER'"
-            echo "before running this utility."
+            echo "ERROR: this OHB was created with a different docker-compsose file. Please run" >&2
+            echo "    'docker stop $CONTAINER'" >&2
+            echo "    'docker rm $CONTAINER'" >&2
+            echo "before running this utility." >&2
         else
-            echo "ERROR: OHB failed to stop."
+            echo "ERROR: OHB failed to stop." >&2
         fi
         RETVAL=1
     fi
@@ -289,11 +321,15 @@ docker_compose_down() {
     return $RETVAL
 }
 
-docker_compose_restart() {
+docker_compose_reset() {
     get_current_http_port
     get_current_image_tag
     docker_compose_down || return $RETVAL
     docker_compose_up
+}
+
+docker_compose_restart() {
+    docker restart $CONTAINER
 }
 
 generate_docker_compose() {
@@ -305,14 +341,14 @@ remove_ohb() {
     if docker_compose_down; then
         echo "Container stopped successfully."
     else
-        echo "ERROR: failed to stop OHB with docker compose down"
+        echo "ERROR: failed to stop OHB with docker compose down" >&2
         return $RETVAL
     fi
     echo "Removing persistent storage ..."
     if rm_dvc; then
         echo "Persistent storage removed successfully."
     else
-        echo "ERROR: failed to remove persistence storage."
+        echo "ERROR: failed to remove persistence storage." >&2
         return $RETVAL
     fi
 }
@@ -323,6 +359,33 @@ recreate_ohb() {
 
     remove_ohb || return $RETVAL
     install_ohb || return $RETVAL
+}
+
+copy_env_to_container() {
+    if [ -n "$REQUESTED_ENV_FILE" ]; then
+        if [[ "$REQUESTED_ENV_FILE" == /* ]]; then
+            ENV_FILE="$REQUESTED_ENV_FILE"
+        else
+            ENV_FILE="$STARTED_FROM/$REQUESTED_ENV_FILE"
+        fi
+    else
+        ENV_FILE="$DEFAULT_ENV_FILE"
+    fi
+
+    if is_container_exists; then
+        if [ -r "$ENV_FILE" ]; then
+            docker cp $ENV_FILE $CONTAINER:/opt/hamclock-backend/.env
+        else
+            echo "ERROR: ENV file not found: '$(realpath "$ENV_FILE")'" >&2
+            RETVAL=1
+        fi
+    else
+        echo "ERROR: the docker container needs to exist for this command." >&2
+        echo "Install or start OHB first." >&2
+        RETVAL=1
+    fi
+
+    return $RETVAL
 }
 
 is_dvc_exists() {
