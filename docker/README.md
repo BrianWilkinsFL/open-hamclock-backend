@@ -132,6 +132,28 @@ The data is persisted in the storage space you created in the first install. It 
 Ok, so you have a back end. But does your hamclock know about it? Go to the project readme and look for information about the '-b' otion to hamclock.
 
 
+# API Keys
+Two services require API keys: openweathermaps.com and ipgeolocation.io.
+
+If openweathermaps doesn't get a key, HamClock will fall back to open-meteo.com. If ipgeolocation.io doesn't have a key, installinga new HamCLock won't be able to pull up your location. Not the end of the world.
+
+If you have these keys, you can provide them to OHB by putting them into a file named ```.env``` and formatting the contents like this:
+```
+# for the api.openweathermap.org API
+OPEN_WEATHER_API_KEY=<insert key here>
+
+# for the app.ipgeolocation.io API
+IPGEOLOC_API_KEY=<insert key here>
+```
+Replace \<insert key here\> with your respective key.
+
+Upon a fresh install or upgrade, the file will be used automatically. To add the keys to an existing install use the add-env-file command:
+```
+./manage-ohb-docker.sh add-env-file
+./manage-ohb-docker.sh restart
+```
+
+
 
 
 
