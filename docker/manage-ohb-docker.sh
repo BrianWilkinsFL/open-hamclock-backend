@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # at release time, this value is set to the tagged release
-OHB_VERSION=latest
+OHB_MANAGER_VERSION=latest
 
 OHB_HTDOCS_DVC=ohb-htdocs
 IMAGE_BASE=komacke/open-hamclock-backend
@@ -27,6 +27,9 @@ main() {
     case $COMMAND in
         -h|--help|help)
             usage
+            ;;
+        -v|--version|version)
+            ohb_manager_version
             ;;
         check-docker)
             check_docker_installed
@@ -162,6 +165,10 @@ $THIS <COMMAND> [options]:
 EOF
 }
 
+ohb_manager_version() {
+    echo $OHB_MANAGER_VERSION
+}
+
 install_ohb() {
     check_docker_installed >/dev/null || return $?
     check_dvc_created || return $?
@@ -187,6 +194,9 @@ install_ohb() {
 }
 
 check_ohb_installed() {
+    echo "$THIS version: '$OHB_MANAGER_VERSION'"
+    echo
+
     echo "Checking for docker ..."
     if ! check_docker_installed | sed 's/^/  /'; then
         RETVAL=1

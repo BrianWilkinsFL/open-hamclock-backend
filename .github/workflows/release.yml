@@ -20,7 +20,7 @@ jobs:
 
       - name: Add tag to manager
         run: |
-          sed -i 's/^\(OHB_VERSION=\).*$/\1${{ github.event.inputs.tag_name }}/' ./docker/manage-ohb-docker.sh
+          sed -i 's/^\(OHB_MANAGER_VERSION=\).*$/\1${{ github.event.inputs.tag_name }}/' ./docker/manage-ohb-docker.sh
 
       - name: Create Release and Upload Asset
         env:
