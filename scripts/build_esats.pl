@@ -10,7 +10,7 @@ my $OUT = $ENV{ESATS_OUT}
     // "/opt/hamclock-backend/htdocs/ham/HamClock/esats/esats.txt";
 
 my $ESATS1 = $ENV{ESATS_ORIGINAL}
-    // "/opt/hamclock-backend/htdocs/ham/HamClock/esats/esats1.txt";
+    // "/opt/hamclock-backend/htdocs/ham/HamClock/esats/esats.subset.txt";
 
 my $TLE_FILE = $ENV{ESATS_TLE_CACHE}
     // "/opt/hamclock-backend/tle/tles.txt";
@@ -75,23 +75,20 @@ sub load_esats1_blocks {
     my %snap_by_norad;
 
     while (1) {
-        my $name = <$fh>;
-        my $l1   = <$fh>;
-        my $l2   = <$fh>;
-        last unless defined $l2;
+        my $row = <$fh>;
+        last unless defined $row;
 
-        chomp($name, $l1, $l2);
-        $name =~ s/\r$//; $l1 =~ s/\r$//; $l2 =~ s/\r$//;
-        $name =~ s/^\s+|\s+$//g;
+        chomp($row);
 
-        my $norad;
-        if ($name ne 'Moon') {
-            ($norad) = $l1 =~ /^1\s+(\d+)[A-Z]/;
+        my ($name, $norad);
+        if ($row ne 'Moon') {
+            next if $row =~ /^#.*/;
+            ($name, $norad) = $row =~ /^([^ ]+)\s+(\d+)/;
             $norad = undef unless defined $norad && $norad =~ /^\d+$/;
         }
 
-        push @ordered, [$name, $l1, $l2, $norad];
-        $snap_by_norad{$norad} = [$name, $l1, $l2] if defined $norad;
+        push @ordered, [$name, $norad];
+        $snap_by_norad{$norad} = [$name] if defined $norad;
     }
 
     close $fh;
@@ -118,7 +115,7 @@ for my $blk (parse_tle_blocks($content)) {
     my ($feed_name, $l1, $l2) = @$blk;
     my ($norad) = $l1 =~ /^1\s+(\d+)[A-Z]/;
     next unless defined $norad && $norad =~ /^\d+$/;
-    $live{$norad} ||= [$l1, $l2];
+    $live{$norad} ||= [$feed_name, $l1, $l2];
 }
 
 # Load authoritative membership + order
@@ -135,14 +132,16 @@ open my $out, ">", $OUT
 my $count = 0;
 
 for my $blk (@{$ordered_ref}) {
-    my ($name, $snap_l1, $snap_l2, $norad) = @$blk;
+    my ($name, $norad) = @$blk;
 
     if (defined $norad && exists $live{$norad}) {
-        my ($l1, $l2) = @{$live{$norad}};
+        my ($feed_name, $l1, $l2) = @{$live{$norad}};
         print $out "$name\n$l1\n$l2\n";
     } else {
-        # Preserve snapshot block (Moon or missing NORAD)
-        print $out "$name\n$snap_l1\n$snap_l2\n";
+        # MORE WORK: if its missing the data is old. If
+        # it's the Moon we need to calculate it or the
+        # data is old. Print to stdout for logging
+        print "Not found: $name (NORAD ID: $norad)\n";
     }
 
     $count++;
