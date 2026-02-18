@@ -17,8 +17,20 @@ make_path($CACHE_DIR);
 # ---------------- CGI Setup ----------------
 
 my $q = CGI->new;
+
+# bygrid => senderCallsign filter
+# ofgrid => receiverCallsign filter
+my $bygrid = uc($q->param('bygrid') // '');
 my $ofgrid = uc($q->param('ofgrid') // '');
-my $maxage = $q->param('maxage') // 900;
+
+my $maxage = $q->param('maxage');
+$maxage = 900 if (!defined $maxage || $maxage eq '');
+$maxage =~ s/\D//g;                 # keep digits only
+$maxage = int($maxage || 900);
+
+# Clamp maxage to sane bounds (seconds)
+$maxage = 60    if $maxage < 60;
+$maxage = 86400 if $maxage > 86400;
 
 my $ip = $ENV{HTTP_X_FORWARDED_FOR} || $ENV{REMOTE_ADDR} || "unknown";
 
@@ -27,32 +39,47 @@ print $q->header(
     -type => 'text/plain; charset=ISO-8859-1'
 );
 
-# Log client IP to stderr (lighttpd error.log)
-#print STDERR "PSK request from $ip grid=$ofgrid\n";
+# print STDERR "PSK request from $ip bygrid=$bygrid ofgrid=$ofgrid maxage=$maxage\n";
 
-# Basic validation
-if (!$ofgrid) {
-    print "Error: ofgrid parameter is required.\n";
+# Require at least one selector
+if (!$bygrid && !$ofgrid) {
+    print "Error: bygrid and/or ofgrid parameter is required.\n";
+    exit;
+}
+
+# Basic Maidenhead validation: AA00 or AA00AA (uppercased above)
+# Adjust if you want to accept more lengths.
+sub valid_grid {
+    my ($g) = @_;
+    return 0 if !defined $g || $g eq '';
+    return ($g =~ /^[A-R]{2}[0-9]{2}([A-X]{2})?$/) ? 1 : 0;
+}
+
+if ($bygrid && !valid_grid($bygrid)) {
+    print "Error: invalid bygrid locator.\n";
+    exit;
+}
+if ($ofgrid && !valid_grid($ofgrid)) {
+    print "Error: invalid ofgrid locator.\n";
     exit;
 }
 
 # ---------------- Cache Handling ----------------
 
-my $cache_key  = md5_hex("$ofgrid:$maxage");
+# Cache must distinguish between sender-vs-receiver mode (and allow both)
+my $cache_key  = md5_hex("bygrid=$bygrid|ofgrid=$ofgrid|maxage=$maxage");
 my $cache_file = "$CACHE_DIR/$cache_key.txt";
 
 if (-f $cache_file) {
     my $age = time() - (stat($cache_file))[9];
     if ($age < $CACHE_TTL) {
-#       print STDERR "PSK CACHE HIT $ofgrid\n";
+        # print STDERR "PSK CACHE HIT bygrid=$bygrid ofgrid=$ofgrid\n";
         open my $fh, "<", $cache_file or die;
         print while <$fh>;
         close $fh;
         exit;
     }
 }
-
-#print STDERR "PSK FETCH $ofgrid\n";
 
 # ---------------- Build PSKReporter URL ----------------
 
@@ -63,8 +90,14 @@ my $url = "https://pskreporter.info/cgi-bin/pskquery5.pl?" .
           "&nolocator=1" .
           "&statistics=1" .
           "&flowStartSeconds=$flowStartSeconds" .
-          "&modify=grid" .
-          "&senderCallsign=$ofgrid";
+          "&modify=grid";
+
+# Apply filters per your semantics:
+# bygrid => senderCallsign
+# ofgrid => receiverCallsign
+# Note: PSKReporter uses these as filters; they are not necessarily "callsigns" in the ham sense here.
+$url .= "&senderCallsign=$bygrid"     if $bygrid;
+$url .= "&receiverCallsign=$ofgrid"   if $ofgrid;
 
 # ---------------- HTTP Client ----------------
 
@@ -110,12 +143,12 @@ for my $node ($xml->findnodes('//receptionReport')) {
     push @lines, sprintf "%d,%s,%s,%s,%s,%s,%d,%d\n",
         $t,
         $s_grid,
-        ($node->getAttribute('senderCallsign')   // ''),
+        ($node->getAttribute('senderCallsign')    // ''),
         $r_grid,
-        ($node->getAttribute('receiverCallsign')// ''),
-        ($node->getAttribute('mode')            // ''),
-        ($node->getAttribute('frequency')       // 0),
-        ($node->getAttribute('sNR')             // 0);
+        ($node->getAttribute('receiverCallsign') // ''),
+        ($node->getAttribute('mode')             // ''),
+        ($node->getAttribute('frequency')        // 0),
+        ($node->getAttribute('sNR')              // 0);
 }
 
 my $output = join("", @lines);
