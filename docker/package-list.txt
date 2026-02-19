@@ -5,6 +5,7 @@ less
 vim
 
 # packages required by hamclock-backend
+bc
 cron
 curl
 ffmpeg
