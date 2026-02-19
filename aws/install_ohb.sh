@@ -195,7 +195,7 @@ sudo -u www-data env HOME="$BASE/tmp" XDG_CACHE_HOME="$BASE/tmp" PIP_CACHE_DIR="
 "$VENV/bin/pip" install --upgrade pip & spinner $!
 
 sudo -u www-data env HOME="$BASE/tmp" XDG_CACHE_HOME="$BASE/tmp" PIP_CACHE_DIR="$BASE/tmp/pip-cache" \
-"$VENV/bin/pip" install requests numpy pygrib matplotlib pandas >/dev/null &
+"$VENV/bin/pip" install requests numpy pygrib matplotlib pandas scipy >/dev/null &
 spinner $!
 
 # ---------- relocate ham ----------
