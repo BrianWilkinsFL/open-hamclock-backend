@@ -6,7 +6,6 @@ use CGI qw(:standard);
 # ---------------------------------------------------------------------------
 # fetchBandConditions.pl — local drop-in replacement for CSI's endpoint.
 # Delegates to voacap_bandconditions.py and returns identical output.
-#
 # ---------------------------------------------------------------------------
 
 my $PYTHON  = '/opt/hamclock-backend/venv/bin/python3';
