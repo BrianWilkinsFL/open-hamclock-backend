@@ -13,7 +13,7 @@ STARTED_FROM="$PWD"
 cd $HERE
 
 DOCKER_PROJECT=${THIS%.*}
-DEFAULT_TAG=latest
+DEFAULT_TAG=$OHB_MANAGER_VERSION
 GIT_TAG=$(git describe --exact-match --tags 2>/dev/null)
 GIT_VERSION=$(git rev-parse --short HEAD 2>/dev/null)
 CONTAINER=${IMAGE_BASE##*/}
@@ -32,10 +32,10 @@ main() {
             ohb_manager_version
             ;;
         check-docker)
-            check_docker_installed
+            is_docker_installed
             ;;
         check-ohb-install)
-            check_ohb_installed
+            is_ohb_installed
             ;;
         install)
             shift && get_compose_opts "$@"
@@ -170,8 +170,8 @@ ohb_manager_version() {
 }
 
 install_ohb() {
-    check_docker_installed >/dev/null || return $?
-    check_dvc_created || return $?
+    is_docker_installed >/dev/null || return $?
+    is_dvc_created || return $?
 
     echo "Installing OHB ..."
 
@@ -193,12 +193,12 @@ install_ohb() {
     return $RETVAL
 }
 
-check_ohb_installed() {
+is_ohb_installed() {
     echo "$THIS version: '$OHB_MANAGER_VERSION'"
     echo
 
     echo "Checking for docker ..."
-    if ! check_docker_installed | sed 's/^/  /'; then
+    if ! is_docker_installed | sed 's/^/  /'; then
         RETVAL=1
         return $RETVAL
     fi
@@ -245,7 +245,7 @@ check_ohb_installed() {
 }
 
 upgrade_ohb() {
-    check_docker_installed >/dev/null || return $?
+    is_docker_installed >/dev/null || return $?
 
     get_current_http_port
     get_current_image_tag
@@ -263,7 +263,7 @@ upgrade_ohb() {
     return $RETVAL
 }
 
-check_docker_installed() {
+is_docker_installed() {
     DOCKERD_VERSION=$(dockerd -v 2>/dev/null)
     DOCKERD_RETVAL=$?
     DOCKER_COMPOSE_VERSION=$(docker compose version 2>/dev/null)
@@ -276,6 +276,8 @@ check_docker_installed() {
         echo "ERROR: docker compose is not installed but we found docker. Try installing docker compose." >&2
         echo "  docker version found: '$DOCKERD_VERSION'" >&2
         RETVAL=$DOCKER_COMPOSE_RETVAL
+    elif ! is_jq_installed; then
+        RETVAL=$?
     else
         echo "$DOCKERD_VERSION"
         echo "$DOCKER_COMPOSE_VERSION"
@@ -283,7 +285,17 @@ check_docker_installed() {
     return $RETVAL
 }
 
-check_dvc_created() {
+is_jq_installed() {
+    JQ_VERSION=$(jq --version 2>/dev/null)
+    jQ_RETVAL=$?
+
+    if [ $jQ_RETVAL -ne 0 ]; then
+        echo "ERROR: jq is not installed. Could not find jq." >&2
+    fi
+    return $JQ_RETVAL
+}
+
+is_dvc_created() {
     if is_dvc_exists; then
         echo "This doesn't appear to be a fresh install. A docker volume container"
         echo "was found."
