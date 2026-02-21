@@ -1,7 +1,10 @@
 # 🛟 OHB — Open HamClock Backend
-Open-source, self-hostable backend replacement for HamClock.
 
 When the original backend went dark, the clocks didn’t have to.
+
+Open-source, self-hostable backend replacement for HamClock — restoring live propagation data, maps, and feeds.
+
+Drop-in compatible with existing HamClock clients — no firmware changes required.
 
 OHB provides faithful replacements for the data feeds and map assets
 that HamClock depends on — built by operators, for operators.
@@ -47,7 +50,7 @@ We are building a community-powered backend to keep HamClock running. \
 Discord is where we can collaborate, troubleshoot, and exchange ideas — no RF license required 😎 \
 https://discord.gg/wb8ATjVn6M
 
-# Live Screenshots from Real HamClock with OHB
+# OHB in Production (Live HamClock Clients)
 
 <img width="798" height="568" alt="image" src="https://github.com/user-attachments/assets/14b24350-c0a5-4b00-a36f-9c34c74fef3d" />
 <img width="799" height="568" alt="image" src="https://github.com/user-attachments/assets/f10d67f5-186c-43b6-b9d9-71149fd897f7" />
@@ -61,12 +64,13 @@ https://discord.gg/wb8ATjVn6M
 
 OHB targets ~40+ HamClock artifacts (feeds, maps, and endpoints).
 
-Current highlights:
+As of today:
 
-• All core dynamic maps implemented  
-• All primary text feeds replicated  
-• Integration-tested on live HamClock clients  
-• Remaining work focused on VOACAP + RBN endpoints  
+- All core dynamic maps implemented
+- All text feeds replicated
+- RSS feed works for thousands for clients
+- Integration-tested on live HamClock clients
+- Remaining work focused on VOACAP + RBN endpoints  
 
 👉 Full artifact tracking and integration status:
 [PROJECT_STATUS.md](PROJECT_STATUS.md) 
