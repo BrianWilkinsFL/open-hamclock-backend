@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import time
 import pandas as pd
 import requests
 from pathlib import Path
@@ -12,10 +13,35 @@ OUT = Path("/opt/hamclock-backend/htdocs/ham/HamClock/xray/xray.txt")
 CSI_LAG_MINUTES = 21
 
 def main() -> None:
-    r = requests.get(URL, timeout=30)
-    r.raise_for_status()
+    # Retry up to 3 times with backoff in case of transient SWPC issues
+    for attempt in range(3):
+        r = requests.get(URL, timeout=(10, 60))
+        r.raise_for_status()
 
-    df = pd.DataFrame(r.json())
+        content_type = r.headers.get('Content-Type', '')
+        if 'json' not in content_type:
+            raise RuntimeError(
+                f"Expected JSON from SWPC but got Content-Type: {content_type!r}\n"
+                f"Response start: {r.text[:500]!r}"
+            )
+
+        try:
+            data = r.json()
+            break  # success
+        except requests.exceptions.JSONDecodeError as e:
+            snippet_start = r.text[:500]
+            snippet_end = r.text[-500:]
+            if attempt < 2:
+                print(f"Attempt {attempt + 1}: JSON parse failed at pos {e.pos}, retrying in 5s...")
+                time.sleep(5)
+                continue
+            raise RuntimeError(
+                f"SWPC returned invalid JSON after 3 attempts (pos {e.pos})\n"
+                f"START: {snippet_start!r}\n"
+                f"END:   {snippet_end!r}"
+            ) from e
+
+    df = pd.DataFrame(data)
     required = {"time_tag", "energy", "flux"}
     if not required.issubset(df.columns):
         raise RuntimeError("Unexpected SWPC JSON schema (missing required keys)")
@@ -72,4 +98,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
