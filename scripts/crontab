@@ -40,7 +40,7 @@ LANG=C
 15 10,14 * * * $VENV/bin/python3 $BASE/scripts/ssn_simple.py   >> $BASE/logs/ssn_simple.log 2>&1
 */5 * * * *    $VENV/bin/python3 $BASE/scripts/swind_simple.py >> $BASE/logs/gen_swind_24hr.log 2>&1
 */10 * * * *   $VENV/bin/python3 $BASE/scripts/bz_simple.py    >> $BASE/logs/bz_simple.log 2>&1
-7,37 * * * *   $VENV/bin/python3 $BASE/scripts/flux_simple.py  >> $BASE/logs/flux_simple.log 2>&1
+6,37 * * * *   $VENV/bin/python3 $BASE/scripts/flux_simple.py  >> $BASE/logs/flux_simple.log 2>&1
 */5 * * * *    $VENV/bin/python3 $BASE/scripts/xray_simple.py  >> $BASE/logs/xray_simple.log 2>&1
 */15 * * * *   $VENV/bin/python3 $BASE/scripts/kindex_simple.py > $BASE/htdocs/ham/HamClock/geomag/kindex.txt.tmp && mv -f $BASE/htdocs/ham/HamClock/geomag/kindex.txt.tmp $BASE/htdocs/ham/HamClock/geomag/kindex.txt
 
@@ -64,9 +64,16 @@ LANG=C
 # Optional watchdog
 0 4 * * 0 /opt/hamclock-backend/scripts/validate_aurora.sh >> /opt/hamclock-backend/logs/aurora_validate.log 2>&1
 */30 * * * * /opt/hamclock-backend/scripts/gen_noaaswx.sh >> /opt/hamclock-backend/logs/gen_noaswxx.log 2>&1
+
+# POTA, SOTA, WWFF
+0 3 * * 1 /opt/hamclock-backend/scripts/update_wwff_cache.pl >> /opt/hamclock-backend/logs/update_wwff_cache.log 2>&1
+0 4 * * 1,4 /opt/hamclock-backend/scripts/update_sota_cache.pl >> /opt/hamclock-backend/logs/update_sota_cache.log 2>&1
 */5 * * * * /opt/hamclock-backend/scripts/gen_onta.pl >> /opt/hamclock-backend/logs/gen_onta.log 2>&1
+
 */3 * * * * /opt/hamclock-backend/scripts/gen_drap.sh >> /opt/hamclock-backend/logs/gen_drap.log 2>&1
+
 20 2 * * * /opt/hamclock-backend/scripts/gen_cty_wt_mod.sh >> /opt/hamclock-backend/logs/gen_cty_wt_mod.sh 2>&1
+
 */30 * * * * flock -n /tmp/update_sdo.lock /opt/hamclock-backend/scripts/update_all_sdo.sh >> /opt/hamclock-backend/logs/update_all_sdo.log 2>&1
 
 # maps
