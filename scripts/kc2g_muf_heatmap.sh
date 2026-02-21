@@ -165,26 +165,47 @@ for SZ in "${SIZES[@]}"; do
   convert "$PNG" -resize "${SZ}!" "$PNG_FIXED" \
     || { echo "    resize failed for ${DN} ${SZ}"; continue; }
 
-  # Flip vertically (GMT origin is bottom-left, HamClock expects top-down)
-  convert "$PNG_FIXED" -flip "$PNG_FIXED"
-
-  # Convert to RGB565 BMP3
-  convert "$PNG_FIXED" \
-    -type TrueColor \
-    -define bmp:subtype=RGB565 \
-    BMP3:"$BMP" || { echo "    bmp convert failed for ${DN} ${SZ}"; continue; }
-
-  # Force negative height in BMP header (top-down DIB for HamClock)
+  # Extract raw RGB bytes, then write proper BMPv4 RGB565 top-down
+  RAW="${BASE}.raw"
+  convert "$PNG_FIXED" RGB:"$RAW" || { echo "    raw extract failed for ${DN} ${SZ}"; continue; }
   python3 - << EOF
-import struct
-with open("$BMP", "r+b") as f:
-    f.seek(22)
-    h = struct.unpack("<i", f.read(4))[0]
-    if h > 0:
-        f.seek(22)
-        f.write(struct.pack("<i", -h))
-EOF
+import struct, sys
+inraw, outbmp, W, H = "$RAW", "$BMP", int($W), int($H)
 
+raw = open(inraw, "rb").read()
+exp = W*H*3
+if len(raw) != exp:
+    raise SystemExit(f"RAW size {len(raw)} != expected {exp}")
+
+pix = bytearray(W*H*2)
+j = 0
+for i in range(0, len(raw), 3):
+    r = raw[i]; g = raw[i+1]; b = raw[i+2]
+    v = ((r >> 3) << 11) | ((g >> 2) << 5) | (b >> 3)
+    pix[j:j+2] = struct.pack("<H", v)
+    j += 2
+
+bfOffBits = 14 + 108
+bfSize = bfOffBits + len(pix)
+filehdr = struct.pack("<2sIHHI", b"BM", bfSize, 0, 0, bfOffBits)
+
+biSize = 108
+rmask, gmask, bmask, amask = 0xF800, 0x07E0, 0x001F, 0x0000
+cstype = 0x73524742  # sRGB
+endpoints = b"\x00"*36
+gamma = b"\x00"*12
+
+v4hdr = struct.pack("<IiiHHIIIIII",
+    biSize, W, -H, 1, 16, 3, len(pix), 0, 0, 0, 0
+) + struct.pack("<IIII", rmask, gmask, bmask, amask) \
+  + struct.pack("<I", cstype) + endpoints + gamma
+
+with open(outbmp, "wb") as f:
+    f.write(filehdr)
+    f.write(v4hdr)
+    f.write(pix)
+EOF
+  rm -f "$RAW" 
   # Zlib compress → final output
   python3 - << EOF
 import zlib

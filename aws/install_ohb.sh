@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-set -euo pipefail
 
 REPO="https://github.com/BrianWilkinsFL/open-hamclock-backend.git"
 BASE="/opt/hamclock-backend"
@@ -95,7 +94,7 @@ EOF
 echo -e "${GRN}RF • Space • Propagation • Maps${NC}"
 echo
 
-STEPS=12
+STEPS=15
 STEP=0
 
 # ---------- sanity ----------
@@ -120,6 +119,10 @@ libx11-dev libxaw7-dev libxmu-dev libxt-dev libmotif-dev wget logrotate xmlstarl
 spinner $!
 
 STEP=$((STEP+1)); progress $STEP $STEPS
+echo -e "${BLU}==> Removing existing crontab${NC}"
+sudo -u www-data crontab -r 2>/dev/null || true
+
+# ---------- imagemagick policy ----------
 echo -e "${BLU}==> Configuring ImageMagick policy for large maps${NC}"
 
 POLICY=$(find /etc/ImageMagick-* /usr/lib/ImageMagick-* -name policy.xml 2>/dev/null | head -1 || true)
@@ -139,33 +142,67 @@ else
     echo -e "${BLU}    Backup already exists: $POLICY_BAK (skipping)${NC}"
   fi
 
-  # Sanitize invalid double-hyphens inside XML comments before xmlstarlet runs.
-  # Debian/Ubuntu ships policy.xml with <!-- ... -- ... --> which is illegal XML.
-  # Strategy: replace any '--' that is NOT immediately followed by '>' with a single '-'.
-  sudo perl -i -pe 's/<!--.*?-->/my $c=$&; $c=~s|(?<!-)--(?!>)|-|g; $c/gse' "$POLICY" 2>/dev/null || \
-    sudo sed -i -E ':a;s/(<!--[^-]*)--([^>])/\1-\2/;ta' "$POLICY"
+  # Raspberry Pi ships policy.xml with single-dash comments <!- ... ->
+  # which are illegal XML and cannot be sanitized — replace wholesale.
+  if [[ -f /etc/rpi-issue ]]; then
+    echo -e "${YEL}    Pi OS detected: replacing malformed policy.xml with known-good version${NC}"
+    sudo tee "$POLICY" > /dev/null <<'EOF'
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE policymap [
+<!ELEMENT policymap (policy)*>
+<!ATTLIST policymap xmlns CDATA #FIXED "">
+<!ELEMENT policy EMPTY>
+<!ATTLIST policy xmlns CDATA #FIXED "">
+<!ATTLIST policy domain NMTOKEN #REQUIRED>
+<!ATTLIST policy name NMTOKEN #IMPLIED>
+<!ATTLIST policy pattern CDATA #IMPLIED>
+<!ATTLIST policy rights NMTOKEN #IMPLIED>
+<!ATTLIST policy stealth NMTOKEN #IMPLIED>
+<!ATTLIST policy value CDATA #IMPLIED>
+]>
+<policymap>
+  <policy domain="resource" name="memory" value="2GiB"/>
+  <policy domain="resource" name="map" value="4GiB"/>
+  <policy domain="resource" name="area" value="128MP"/>
+  <policy domain="resource" name="disk" value="8GiB"/>
+  <policy domain="resource" name="width" value="16KP"/>
+  <policy domain="resource" name="height" value="16KP"/>
+  <policy domain="path" rights="none" pattern="@*"/>
+</policymap>
+EOF
+    echo -e "${GRN}[✓] Pi policy.xml replaced and ready${NC}"
 
-  # Validate before proceeding
-  if ! xmlstarlet val "$POLICY" &>/dev/null; then
-    echo -e "${YEL}WARN: $POLICY is not valid XML even after sanitization — skipping${NC}"
-    echo -e "${YEL}      Original preserved at: $POLICY_BAK${NC}"
   else
-    _im_ok=1
-    sudo xmlstarlet ed -L \
-      -u "//policy[@domain='resource'][@name='width']/@value"  -v "16KP" \
-      -u "//policy[@domain='resource'][@name='height']/@value" -v "16KP" \
-      -u "//policy[@domain='resource'][@name='area']/@value"   -v "128MP" \
-      -u "//policy[@domain='resource'][@name='disk']/@value"   -v "8GiB" \
-      -u "//policy[@domain='resource'][@name='memory']/@value" -v "2GiB" \
-      "$POLICY" || _im_ok=0
+    # Non-Pi (WSL2, Ubuntu, Debian, etc.): sanitize in place then edit with xmlstarlet
 
-    if [[ "$_im_ok" -eq 1 ]]; then
-      echo -e "${GRN}[✓] ImageMagick policy updated ($POLICY)${NC}"
-      echo -e "${GRN}    Original backed up at: $POLICY_BAK${NC}"
+    # Sanitize invalid double-hyphens inside XML comments before xmlstarlet runs.
+    # Debian/Ubuntu ships policy.xml with <!-- ... -- ... --> which is illegal XML.
+    # Strategy: replace any '--' that is NOT immediately followed by '>' with a single '-'.
+    sudo perl -i -pe 's/<!--.*?-->/my $c=$&; $c=~s|(?<!-)--(?!>)|-|g; $c/gse' "$POLICY" 2>/dev/null || \
+      sudo sed -i -E ':a;s/(<!--[^-]*)--([^>])/\1-\2/;ta' "$POLICY"
+
+    # Validate before proceeding
+    if ! xmlstarlet val "$POLICY" &>/dev/null; then
+      echo -e "${YEL}WARN: $POLICY is not valid XML even after sanitization — skipping${NC}"
+      echo -e "${YEL}      Original preserved at: $POLICY_BAK${NC}"
     else
-      echo -e "${YEL}WARN: ImageMagick policy update failed — large maps may not render correctly${NC}"
-      echo -e "${YEL}      Fix manually: sudo nano $POLICY${NC}"
-      echo -e "${YEL}      Restore original: sudo cp $POLICY_BAK $POLICY${NC}"
+      _im_ok=1
+      sudo xmlstarlet ed -L \
+        -u "//policy[@domain='resource'][@name='width']/@value"  -v "16KP" \
+        -u "//policy[@domain='resource'][@name='height']/@value" -v "16KP" \
+        -u "//policy[@domain='resource'][@name='area']/@value"   -v "128MP" \
+        -u "//policy[@domain='resource'][@name='disk']/@value"   -v "8GiB" \
+        -u "//policy[@domain='resource'][@name='memory']/@value" -v "2GiB" \
+        "$POLICY" || _im_ok=0
+
+      if [[ "$_im_ok" -eq 1 ]]; then
+        echo -e "${GRN}[✓] ImageMagick policy updated ($POLICY)${NC}"
+        echo -e "${GRN}    Original backed up at: $POLICY_BAK${NC}"
+      else
+        echo -e "${YEL}WARN: ImageMagick policy update failed — large maps may not render correctly${NC}"
+        echo -e "${YEL}      Fix manually: sudo nano $POLICY${NC}"
+        echo -e "${YEL}      Restore original: sudo cp $POLICY_BAK $POLICY${NC}"
+      fi
     fi
   fi
 fi
@@ -507,6 +544,7 @@ run_sh  kc2g_muf_heatmap.sh
 
 sudo chown -R www-data:www-data "$BASE"
 # ---------- footer ----------
+sudo git config --global --add safe.directory "$BASE" 2>/dev/null || true
 VERSION=$(git -C "$BASE" describe --tags --dirty --always 2>/dev/null)
 VERSION=${VERSION:-$(git -C "$BASE" rev-parse --short HEAD 2>/dev/null)}
 VERSION=${VERSION:-"unknown"}
