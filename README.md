@@ -57,6 +57,7 @@ https://discord.gg/wb8ATjVn6M
 <img width="795" height="569" alt="image" src="https://github.com/user-attachments/assets/476bb210-fe1d-4caf-9243-5ada8fffc608" />
 <img width="797" height="569" alt="image" src="https://github.com/user-attachments/assets/35e843bf-f2c6-4b99-881b-1bf675660b7a" />
 <img width="797" height="571" alt="image" src="https://github.com/user-attachments/assets/859d158c-e441-4788-bd67-3aaa48be45e0" />
+<img width="797" height="476" alt="image" src="https://github.com/user-attachments/assets/b8644372-0d6c-4c81-9eeb-ee5d763b490d" />
 
 ## 🚀 Quick Start 👉 [Quick Start Guide](QUICK_START.md)
 ## 📦 Installation 👉 [Detailed installation instructions](INSTALL.md)
@@ -68,6 +69,7 @@ As of today:
 
 - All core dynamic maps implemented
 - All text feeds replicated
+- Amateur satellites with fresh TLEs
 - RSS feed works for thousands for clients
 - Integration-tested on live HamClock clients
 - Remaining work focused on VOACAP + RBN endpoints  
