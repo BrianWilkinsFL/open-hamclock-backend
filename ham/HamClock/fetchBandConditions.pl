@@ -55,16 +55,25 @@ for ($year, $month, $utc, $txlat, $txlng, $rxlat, $rxlng,
     s/[^0-9.\-]//g;
 }
 
-# Fetch SSN from NOAA if not supplied
-# Consider fetching local; however smoothed_ssn seems to be what we want
+# Read SSN from local file
 if (!$ssn || $ssn !~ /^\d+(\.\d+)?$/) {
-    my $url = 'https://services.swpc.noaa.gov/json/solar-indices.json';
-    my $json = `curl -fsSL --max-time 5 "$url" 2>/dev/null`;
-    if ($json && $json =~ /"smoothed_ssn"\s*:\s*([\d.]+)/) {
-        $ssn = int($1 + 0.5);
-    } else {
-        $ssn = 90;  # fallback
+    my $ssn_dir  = '/opt/hamclock-backend/htdocs/ham/HamClock/ssn';
+    my ($ssn_file) = glob("$ssn_dir/ssn-*.txt");
+    my @t     = gmtime(time());
+    my $today = sprintf("%04d %02d %02d", $t[5]+1900, $t[4]+1, $t[3]);
+    $ssn = 42;  # fallback
+    if ($ssn_file && open(my $fh, '<', $ssn_file)) {
+        my $last = 39;
+        while (<$fh>) {
+            if (/^(\d{4})\s+(\d{2})\s+(\d{2})\s+(\d+)/) {
+                my $date = "$1 $2 $3";
+                $last = $4;
+                $ssn  = $4 if $date eq $today;
+            }
+        }
+        $ssn = $last if $ssn == 42;  # today not in file yet — use most recent
     }
+    $ssn = 0 if $ssn < 0;  # floor to avoid degenerate predictions
 }
 
 # ---------------------------------------------------------------------------
@@ -83,6 +92,7 @@ my @cmd = (
     '--pow',    $pow,
     '--mode',   $mode,
     '--toa',    $toa,
+    '--ssn',    $ssn,
     '--cache-dir', $CACHE_DIR,
     '--cache-ttl', $CACHE_TTL,
 );
