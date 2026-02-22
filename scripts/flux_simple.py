@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-flux_simple.py
+solarflux_99_swpc.py
 
 Reconstruct ClearSky-like solarflux-99 generation without ClearSky availability.
 
@@ -187,23 +187,43 @@ def main():
         pass
 
     # ---- Elwood smoothing via NOAA outlook ----
+    # ---- Elwood smoothing via NOAA outlook ----
     try:
-        outlook = parse_outlook(fetch_text(URL_OUTLOOK))
+       outlook = parse_outlook(fetch_text(URL_OUTLOOK))
 
-        last = max(cache)
-        fkeys = sorted(k for k in outlook if k > last)
-        
-        if len(fkeys) >= 2:
-            o = cache[last]
-            f1 = outlook[fkeys[0]]
-            f2 = outlook[fkeys[1]]
-            cache[fkeys[0]] = round((o + f1) / 2)
-            cache[fkeys[1]] = round((f1 + f2) / 2)
+       last = max(cache)
+       fkeys = sorted(k for k in outlook if k > last)
+
+       if len(fkeys) >= 2:
+          o = cache[last]
+          f1 = outlook[fkeys[0]]
+          f2 = outlook[fkeys[1]]
+
+          # Day+1: plateau (repeat observed)
+          cache[fkeys[0]] = o
+
+          # Day+2: first blend
+          s1 = round((o + f1) / 2)
+          cache[fkeys[1]] = s1
+
+          # Day+3: second blend
+          s2 = round((f1 + f2) / 2)
+          if len(fkeys) >= 3:
+             cache[fkeys[2]] = s2
+
+          # Day+4: repeat S2 (CSI does this)
+          if len(fkeys) >= 4:
+             cache[fkeys[3]] = s2
+
+          # drop everything beyond
+          for k in fkeys[4:]:
+             cache.pop(k, None)
+
     except Exception:
-        pass
+      pass
 
     if first and cache:
-        cache.pop(sorted(cache)[0])
+      cache.pop(sorted(cache)[0])
 
     keys = sorted(cache)
     if len(keys) > DAYS:
